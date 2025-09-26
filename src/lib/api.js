@@ -76,6 +76,20 @@ const convertToBackendFormat = (businessHours) => {
   }));
 };
 
+// Helper function to convert day name to weekday number
+const getWeekdayNumber = (dayName) => {
+  const dayMap = {
+    'sunday': 0,
+    'monday': 1,
+    'tuesday': 2,
+    'wednesday': 3,
+    'thursday': 4,
+    'friday': 5,
+    'saturday': 6
+  };
+  return dayMap[dayName.toLowerCase()] || 0;
+};
+
 // Helper function to convert backend business hours format to frontend format
 const convertToFrontendFormat = (backendHours) => {
   return backendHours.map(bh => ({
@@ -277,7 +291,25 @@ export const businessHoursAPI = {
     try {
       const response = await apiClient.get('/business-hours');
       
-      // Convert backend format to frontend format
+      // Handle our current API format
+      if (response.data.success && response.data.data?.businessHours) {
+        // Convert our API format to frontend format
+        const frontendHours = response.data.data.businessHours.map(bh => ({
+          weekday: getWeekdayNumber(bh.day),
+          openTime: bh.open,
+          closeTime: bh.close,
+          isClosed: !bh.isOpen
+        }));
+        
+        return {
+          data: {
+            success: true,
+            businessHours: frontendHours
+          }
+        };
+      }
+      
+      // Fallback to old format conversion
       const frontendHours = convertToFrontendFormat(response.data.data || []);
       
       return {

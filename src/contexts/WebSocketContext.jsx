@@ -16,6 +16,13 @@ export const WebSocketProvider = ({ children }) => {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+    // Disable WebSocket completely since Vercel doesn't support it
+    // This prevents the WebSocket connection errors in the console
+    setConnected(false);
+    return;
+    
+    // Original WebSocket code (disabled for Vercel deployment):
+    /*
     // Check if we're in mock mode (same logic as API)
     const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
     const isMockMode = !API_BASE_URL || API_BASE_URL.includes('your-api-server.com') || API_BASE_URL.includes('localhost');
@@ -27,6 +34,7 @@ export const WebSocketProvider = ({ children }) => {
       setConnected(false);
       return;
     }
+    */
 
     const socketUrl = import.meta.env.VITE_WS_URL || 'http://localhost:8002';
     const newSocket = io(socketUrl, {
