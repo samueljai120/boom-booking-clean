@@ -2,7 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useBusinessHours } from '../contexts/BusinessHoursContext';
 import { useTutorial } from '../contexts/TutorialContext';
-import { useAuth } from '../contexts/AuthContext';
 import moment from 'moment-timezone';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { roomsAPI, bookingsAPI } from '../lib/api';
@@ -27,7 +26,6 @@ import InstructionsModal from './InstructionsModal';
 import ReservationViewModal from './ReservationViewModal';
 import BookingConfirmation from './BookingConfirmation';
 import LoadingSkeleton from './LoadingSkeleton';
-import MenuButton from './MenuButton';
 import toast from 'react-hot-toast';
 import {
   DndContext,
@@ -488,14 +486,9 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
   const [showConfirmation, setShowConfirmation] = useState(false);
   // Mini calendar month base (independent from selected date)
   const [calendarBaseDate, setCalendarBaseDate] = useState(selectedDate);
-  // Modal states
-  const [showAnalytics, setShowAnalytics] = useState(false);
-  const [showCustomerBase, setShowCustomerBase] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const { settings } = useSettings();
   const { businessHours, getBusinessHoursForDay, getTimeSlotsForDay, isWithinBusinessHours } = useBusinessHours();
   const { showTutorialButton, startTutorial, restartTutorial, tutorialCompleted, tutorialSkipped, isInitialized } = useTutorial();
-  const { user, logout } = useAuth();
   
   // Handle tutorial button click
   const handleTutorialClick = () => {
@@ -509,6 +502,9 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [draggedBooking, setDraggedBooking] = useState(null);
+  const [showInstructions, setShowInstructions] = useState(false);
+  const [showAnalytics, setShowAnalytics] = useState(false);
+  const [showCustomerBase, setShowCustomerBase] = useState(false);
   const queryClient = useQueryClient();
 
   // Current time tracking with high frequency updates for smooth movement
@@ -1913,19 +1909,83 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
           </div>
         </div>
 
-        {/* Bottom Sticky Actions: Menu Button */}
-        <div className="mt-auto border-t border-gray-200 p-2">
-          <MenuButton
-            sidebarOpen={sidebarOpen}
-            onShowAIBooking={() => {}} // Not available in TraditionalSchedule
-            onShowAIAnalytics={() => {}} // Not available in TraditionalSchedule
-            onShowAnalytics={() => setShowAnalytics(true)}
-            onShowCustomerBase={() => setShowCustomerBase(true)}
-            onShowInstructions={() => setShowInstructions(true)}
-            onShowSettings={onSettingsClick}
-            onLogout={logout}
-            user={user}
-          />
+        {/* Bottom Sticky Actions: Analytics + Customer Base + Instructions + Settings */}
+        <div className="mt-auto border-t border-gray-200 p-2 space-y-2">
+          {sidebarOpen ? (
+            <>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => setShowAnalytics(true)}
+              >
+                <BarChart3 className="w-4 h-4 mr-3" />
+                Analytics
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => setShowCustomerBase(true)}
+              >
+                <Users className="w-4 h-4 mr-3" />
+                Customer Base
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => setShowInstructions(true)}
+              >
+                <CalendarIcon className="w-4 h-4 mr-3" />
+                Instructions
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={onSettingsClick}
+              >
+                <Settings className="w-4 h-4 mr-3" />
+                Settings
+              </Button>
+            </>
+          ) : (
+            <div className="flex flex-col items-center space-y-2">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-12 w-12"
+                onClick={() => setShowAnalytics(true)}
+                title="Analytics"
+              >
+                <BarChart3 className="w-6 h-6" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-12 w-12"
+                onClick={() => setShowCustomerBase(true)}
+                title="Customer Base"
+              >
+                <Users className="w-6 h-6" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-12 w-12"
+                onClick={() => setShowInstructions(true)}
+                title="Instructions"
+              >
+                <CalendarIcon className="w-6 h-6" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon"
+                className="h-12 w-12"
+                onClick={onSettingsClick}
+                title="Settings"
+              >
+                <Settings className="w-6 h-6" />
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
