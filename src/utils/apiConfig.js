@@ -12,7 +12,7 @@ export const getApiBaseUrl = () => {
   
   // Check if we're in production (Vercel deployment)
   if (import.meta.env.PROD) {
-    // Use Vercel API routes (same domain)
+    // Use Vercel API routes (same domain) - Force relative URL
     return '/api';
   }
   
