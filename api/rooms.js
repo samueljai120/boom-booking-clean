@@ -38,7 +38,7 @@ async function roomsHandler(req, res) {
     const result = await sql`
       SELECT id, tenant_id, name, capacity, category, description, price_per_hour, is_active, metadata
       FROM rooms
-      WHERE tenant_id = ${tenantId} AND is_active = true AND deleted_at IS NULL
+      WHERE tenant_id = ${tenantId} AND is_active = true
       ORDER BY id
     `;
 

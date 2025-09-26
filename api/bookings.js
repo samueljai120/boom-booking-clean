@@ -73,7 +73,7 @@ async function getBookings(req, res) {
         r.name as room_name, r.capacity as room_capacity, r.category as room_category
       FROM bookings b
       JOIN rooms r ON b.room_id = r.id
-      WHERE b.tenant_id = $1 AND b.deleted_at IS NULL AND r.deleted_at IS NULL
+      WHERE b.tenant_id = $1
     `;
     
     const params = [tenant_id];
@@ -160,7 +160,7 @@ async function createBooking(req, res) {
     // Verify room belongs to tenant
     const roomCheck = await sql`
       SELECT id, price_per_hour FROM rooms 
-      WHERE id = ${room_id} AND tenant_id = ${tenant_id} AND is_active = true AND deleted_at IS NULL
+      WHERE id = ${room_id} AND tenant_id = ${tenant_id} AND is_active = true
     `;
 
     if (roomCheck.length === 0) {
@@ -175,7 +175,7 @@ async function createBooking(req, res) {
       SELECT COUNT(*) as count 
       FROM bookings 
       WHERE tenant_id = ${tenant_id} AND room_id = ${room_id} 
-        AND status != 'cancelled' AND deleted_at IS NULL
+        AND status != 'cancelled'
         AND (
           (start_time < ${end_time} AND end_time > ${start_time})
         )
