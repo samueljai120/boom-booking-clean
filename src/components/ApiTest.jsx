@@ -44,7 +44,7 @@ const ApiTest = () => {
 
     // Test auth endpoint
     try {
-      const authResponse = await fetch(`${getApiBaseUrl()}/auth/login`, {
+      const authResponse = await fetch(`${getApiBaseUrl()}/auth?action=login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: 'demo@example.com', password: 'demo123' })

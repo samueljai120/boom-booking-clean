@@ -107,7 +107,7 @@ export const authAPI = {
     if (credentials.email === 'demo@example.com' && credentials.password === 'demo123') {
       console.log('🎯 Trying real API for demo login');
       try {
-        const response = await apiClient.post('/auth/login', credentials);
+        const response = await apiClient.post('/auth?action=login', credentials);
         console.log('✅ Real API demo login successful');
         return response.data;
       } catch (error) {
@@ -130,7 +130,7 @@ export const authAPI = {
     }
     
     try {
-      const response = await apiClient.post('/auth/login', credentials);
+      const response = await apiClient.post('/auth?action=login', credentials);
       return response.data;
     } catch (error) {
       console.log('❌ Real API login failed, falling back to mock:', error.message);
@@ -147,7 +147,7 @@ export const authAPI = {
     }
     
     try {
-      const response = await apiClient.post('/auth/logout');
+      const response = await apiClient.post('/auth?action=logout');
       return response.data;
     } catch (error) {
       console.log('❌ Real API logout failed, falling back to mock:', error.message);
@@ -164,7 +164,7 @@ export const authAPI = {
     }
     
     try {
-      const response = await apiClient.post('/auth/register', userData);
+      const response = await apiClient.post('/auth?action=register', userData);
       return response.data;
     } catch (error) {
       console.log('❌ Real API register failed, falling back to mock:', error.message);
@@ -181,7 +181,7 @@ export const authAPI = {
     }
     
     try {
-      const response = await apiClient.get('/auth/me');
+      const response = await apiClient.get('/auth?action=me');
       return response.data;
     } catch (error) {
       console.log('❌ Real API getSession failed, falling back to mock:', error.message);

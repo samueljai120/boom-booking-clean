@@ -92,7 +92,7 @@ const RegisterPage = () => {
 
     setCheckingSubdomain(true);
     try {
-      const response = await fetch(`/api/subdomain-router?subdomain=${subdomain}`);
+      const response = await fetch(`/api/subdomain?action=router&subdomain=${subdomain}`);
       const result = await response.json();
       
       if (result.success && result.data.tenant) {

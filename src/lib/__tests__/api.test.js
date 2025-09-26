@@ -15,7 +15,7 @@ describe('API Integration Tests', () => {
         password: 'password123'
       }
 
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth?action=login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -34,7 +34,7 @@ describe('API Integration Tests', () => {
     it('should handle login error', async () => {
       // Override the default handler for this test
       server.use(
-        http.post('/api/auth/login', () => {
+        http.post('/api/auth?action=login', () => {
           return HttpResponse.json(
             { error: 'Invalid credentials' },
             { status: 401 }
@@ -47,7 +47,7 @@ describe('API Integration Tests', () => {
         password: 'wrongpassword'
       }
 
-      const response = await fetch('/api/auth/login', {
+      const response = await fetch('/api/auth?action=login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

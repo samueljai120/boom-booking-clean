@@ -44,7 +44,7 @@ const LoginTest = () => {
     setTestResult('Testing direct API call...');
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth?action=login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -33,7 +33,7 @@ export const TenantProvider = ({ children }) => {
         if (subdomainParam) {
           console.log(`🔍 Detected subdomain from URL: ${subdomainParam}`);
           const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-          const response = await fetch(`${API_BASE_URL}/subdomain-router?subdomain=${subdomainParam}`);
+          const response = await fetch(`${API_BASE_URL}/subdomain?action=router&subdomain=${subdomainParam}`);
           
           if (!isMounted) return; // Prevent state updates if component unmounted
           
@@ -56,7 +56,7 @@ export const TenantProvider = ({ children }) => {
         
         // Try to detect subdomain from Host header
         const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-        const response = await fetch(`${API_BASE_URL}/subdomain-detector`);
+        const response = await fetch(`${API_BASE_URL}/subdomain?action=detect`);
         
         if (!isMounted) return; // Prevent state updates if component unmounted
         
@@ -349,7 +349,7 @@ export const TenantProvider = ({ children }) => {
   // Check subdomain availability
   const checkSubdomainAvailability = async (subdomain) => {
     try {
-      const response = await fetch('/api/subdomain', {
+      const response = await fetch('/api/subdomain?action=check', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

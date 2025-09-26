@@ -2,7 +2,7 @@ import { http, HttpResponse } from 'msw'
 
 export const handlers = [
   // Auth endpoints
-  http.post('/api/auth/login', () => {
+  http.post('/api/auth?action=login', () => {
     return HttpResponse.json({
       user: {
         id: '1',
@@ -14,7 +14,7 @@ export const handlers = [
     })
   }),
 
-  http.post('/api/auth/register', () => {
+  http.post('/api/auth?action=register', () => {
     return HttpResponse.json({
       user: {
         id: '2',
@@ -26,7 +26,7 @@ export const handlers = [
     })
   }),
 
-  http.post('/api/auth/logout', () => {
+  http.post('/api/auth?action=logout', () => {
     return HttpResponse.json({ message: 'Logged out successfully' })
   }),
 

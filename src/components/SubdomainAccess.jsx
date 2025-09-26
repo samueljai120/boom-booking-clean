@@ -31,7 +31,7 @@ const SubdomainAccess = () => {
     setError('');
 
     try {
-      const response = await fetch(`/api/subdomain-router?subdomain=${subdomainValue}`);
+      const response = await fetch(`/api/subdomain?action=router&subdomain=${subdomainValue}`);
       const data = await response.json();
 
       if (data.success && data.data.tenant) {

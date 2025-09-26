@@ -12,7 +12,7 @@ const AuthTest = () => {
     setTestResult('Testing...');
 
     try {
-      const response = await fetch(`${getApiBaseUrl()}/auth/login`, {
+      const response = await fetch(`${getApiBaseUrl()}/auth?action=login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

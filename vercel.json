@@ -42,7 +42,7 @@
     }
   ],
   "functions": {
-    "api/subdomain-router.js": {
+    "api/subdomain.js": {
       "maxDuration": 10
     }
   }
