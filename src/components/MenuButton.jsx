@@ -1,205 +1,204 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from './ui/Button';
+import { Card, CardContent } from './ui/Card';
 import { 
-  MoreVertical,
-  Brain,
-  Zap,
-  BarChart3,
-  Users,
-  Calendar as CalendarIcon,
-  Settings,
-  User,
-  LogOut,
+  Menu, 
+  X, 
+  Brain, 
+  Zap, 
+  BarChart3, 
+  Users, 
+  CalendarIcon, 
+  Settings, 
+  User, 
+  LogOut, 
+  HelpCircle, 
+  Bell, 
+  CreditCard, 
+  Globe, 
+  Shield, 
+  ChevronRight,
   ChevronDown,
-  ChevronUp
+  Sparkles,
+  Crown,
+  Star
 } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { useTenant } from '../contexts/TenantContext';
 
 const MenuButton = ({ 
-  sidebarOpen,
+  sidebarOpen, 
   onShowAIBooking,
   onShowAIAnalytics,
   onShowAnalytics,
   onShowCustomerBase,
   onShowInstructions,
-  onShowSettings,
-  onLogout,
-  user
+  onShowSettings 
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const menuRef = useRef(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({});
+  const { user, logout } = useAuth();
+  const { currentTenant } = useTenant();
 
-  // Close menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (menuRef.current && !menuRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
+  const toggleSection = (section) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [section]: !prev[section]
+    }));
+  };
 
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, []);
+  const handleLogout = async () => {
+    await logout();
+    setIsMenuOpen(false);
+  };
 
-  const menuItems = [
-    // Only include AI features if they have valid onClick handlers
-    ...(onShowAIBooking && onShowAIBooking.toString() !== '() => {}' ? [{
-      id: 'ai-assistant',
-      label: 'AI Assistant',
-      icon: Brain,
-      onClick: onShowAIBooking,
-      className: 'text-purple-600 hover:text-purple-700 hover:bg-purple-50'
-    }] : []),
-    ...(onShowAIAnalytics && onShowAIAnalytics.toString() !== '() => {}' ? [{
-      id: 'ai-analytics',
-      label: 'AI Analytics',
-      icon: Zap,
-      onClick: onShowAIAnalytics,
-      className: 'text-blue-600 hover:text-blue-700 hover:bg-blue-50'
-    }] : []),
+  const menuSections = [
     {
-      id: 'analytics',
-      label: 'Analytics',
-      icon: BarChart3,
-      onClick: onShowAnalytics,
-      className: ''
-    },
-    {
-      id: 'customer-base',
-      label: 'Customer Base',
-      icon: Users,
-      onClick: onShowCustomerBase,
-      className: ''
-    },
-    {
-      id: 'instructions',
-      label: 'Instructions',
-      icon: CalendarIcon,
-      onClick: onShowInstructions,
-      className: ''
+      id: 'features',
+      title: 'App Features',
+      icon: Sparkles,
+      color: 'text-purple-600',
+      bgColor: 'bg-purple-50',
+      hoverColor: 'hover:bg-purple-100',
+      items: [
+        { id: 'ai-assistant', label: 'AI Assistant', icon: Brain, action: onShowAIBooking, color: 'text-purple-600', badge: 'NEW' },
+        { id: 'ai-analytics', label: 'AI Analytics', icon: Zap, action: onShowAIAnalytics, color: 'text-blue-600', badge: 'AI' },
+        { id: 'analytics', label: 'Analytics', icon: BarChart3, action: onShowAnalytics, color: 'text-green-600' },
+        { id: 'customer-base', label: 'Customer Base', icon: Users, action: onShowCustomerBase, color: 'text-orange-600' },
+        { id: 'instructions', label: 'Instructions', icon: CalendarIcon, action: onShowInstructions, color: 'text-indigo-600' },
+      ]
     },
     {
       id: 'settings',
-      label: 'Settings',
+      title: 'Settings & Configuration',
       icon: Settings,
-      onClick: onShowSettings,
-      className: ''
+      color: 'text-gray-600',
+      bgColor: 'bg-gray-50',
+      hoverColor: 'hover:bg-gray-100',
+      items: [
+        { id: 'general-settings', label: 'General Settings', icon: Settings, action: onShowSettings, color: 'text-gray-600' },
+        { id: 'subdomain', label: 'Subdomain & Branding', icon: Globe, action: () => window.location.href = '/settings?section=subdomain', color: 'text-blue-600' },
+        { id: 'notifications', label: 'Notifications', icon: Bell, action: () => window.location.href = '/settings?section=notifications', color: 'text-yellow-600' },
+        { id: 'billing', label: 'Billing & Subscriptions', icon: CreditCard, action: () => window.location.href = '/settings?section=billing', color: 'text-green-600' },
+        { id: 'security', label: 'Security & Privacy', icon: Shield, action: () => window.location.href = '/settings?section=security', color: 'text-red-600' },
+      ]
     }
   ];
 
-  const handleItemClick = (onClick) => {
-    onClick();
-    setIsOpen(false);
+  const handleMenuItemClick = (action) => {
+    if (action) {
+      action();
+    }
+    setIsMenuOpen(false);
   };
 
-  const handleLogout = () => {
-    onLogout();
-    setIsOpen(false);
-  };
-
-  if (sidebarOpen) {
-    // When sidebar is open, show individual buttons as before
-    return (
-      <div className="space-y-2">
-        {menuItems.map((item) => (
-          <Button
-            key={item.id}
-            variant="ghost"
-            className={`w-full justify-start ${item.className}`}
-            onClick={item.onClick}
-          >
-            <item.icon className="w-4 h-4 mr-3" />
-            {item.label}
-          </Button>
-        ))}
-        
-        {/* User Profile Section */}
-        <div className="pt-2 mt-2 border-t border-gray-200">
-          <div className="flex items-center space-x-3 p-2 mb-2">
-            <div className="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center">
-              <User className="w-4 h-4 text-gray-600" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.username || 'Staff User'}
-              </p>
-              <p className="text-xs text-gray-500 truncate">
-                {user?.email || 'admin@boomkaraoke.com'}
-              </p>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-            onClick={handleLogout}
-          >
-            <LogOut className="w-4 h-4 mr-3" />
-            Logout
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // When sidebar is collapsed, show compact menu button with dropdown
   return (
-    <div className="relative" ref={menuRef}>
-      <Button
-        variant="ghost"
+    <div className="relative">
+      {/* Floating Action Button */}
+      <Button 
+        variant="ghost" 
         size="icon"
-        className="h-12 w-12 relative"
-        onClick={() => setIsOpen(!isOpen)}
+        className="h-16 w-16 bg-gradient-to-br from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-2xl hover:shadow-3xl transition-all duration-300 transform hover:scale-110 rounded-full border-2 border-white"
+        onClick={() => setIsMenuOpen(!isMenuOpen)}
         title="Menu"
       >
-        <MoreVertical className="w-6 h-6" />
-        {isOpen && (
-          <ChevronUp className="w-3 h-3 absolute -top-1 -right-1 text-gray-400" />
-        )}
+        <Menu className="w-8 h-8" />
       </Button>
-
-      {/* Dropdown Menu */}
-      {isOpen && (
-        <div className="absolute bottom-14 left-0 w-56 bg-white border border-gray-200 rounded-lg shadow-lg z-50 py-2">
-          {/* Menu Items */}
-          <div className="px-2 space-y-1">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                className={`w-full flex items-center px-3 py-2 text-sm rounded-md hover:bg-gray-50 transition-colors ${item.className}`}
-                onClick={() => handleItemClick(item.onClick)}
-              >
-                <item.icon className="w-4 h-4 mr-3" />
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-gray-200 my-2" />
-
-          {/* User Profile Section */}
-          <div className="px-2">
-            <div className="flex items-center space-x-3 px-3 py-2 mb-2">
-              <div className="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center">
-                <User className="w-4 h-4 text-gray-600" />
+      
+      {/* Floating Menu Panel */}
+      {isMenuOpen && (
+        <div className="absolute bottom-20 left-0 w-80 bg-white/95 backdrop-blur-md border border-gray-200/50 rounded-2xl shadow-2xl z-50 max-h-96 overflow-y-auto">
+          <div className="p-4 border-b border-gray-200/50 bg-gradient-to-r from-blue-50/80 to-purple-50/80 backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Sparkles className="w-4 h-4 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Menu</h3>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {user?.username || 'Staff User'}
-                </p>
-                <p className="text-xs text-gray-500 truncate">
-                  {user?.email || 'admin@boomkaraoke.com'}
-                </p>
-              </div>
+              <Button variant="ghost" size="icon" onClick={() => setIsMenuOpen(false)} className="hover:bg-gray-200/50 rounded-full">
+                <X className="w-4 h-4" />
+              </Button>
             </div>
-            <button
-              className="w-full flex items-center px-3 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-colors"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 mr-3" />
-              Logout
-            </button>
+          </div>
+          
+          <div className="p-3">
+            {menuSections.map((section) => (
+              <div key={section.id} className="mb-3">
+                <button
+                  onClick={() => toggleSection(section.id)}
+                  className={`w-full flex items-center justify-between p-3 text-left text-sm font-semibold text-gray-700 ${section.bgColor} ${section.hoverColor} rounded-lg transition-all duration-200`}
+                >
+                  <div className="flex items-center space-x-2">
+                    <section.icon className={`w-4 h-4 ${section.color}`} />
+                    <span>{section.title}</span>
+                  </div>
+                  {expandedSections[section.id] ? (
+                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 text-gray-500" />
+                  )}
+                </button>
+                
+                {expandedSections[section.id] && (
+                  <div className="ml-4 space-y-1 mt-2 animate-in slide-in-from-top-2 duration-200">
+                    {section.items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => handleMenuItemClick(item.action)}
+                        className={`w-full flex items-center justify-between p-2 text-left text-sm text-gray-600 hover:bg-gray-50 rounded-lg transition-all duration-200 group`}
+                      >
+                        <div className="flex items-center space-x-2">
+                          <item.icon className={`w-4 h-4 ${item.color} group-hover:scale-110 transition-transform duration-200`} />
+                          <span className="font-medium">{item.label}</span>
+                        </div>
+                        {item.badge && (
+                          <span className={`text-xs px-2 py-1 rounded-full ${
+                            item.badge === 'NEW' ? 'bg-purple-100 text-purple-600' : 
+                            item.badge === 'AI' ? 'bg-blue-100 text-blue-600' : 
+                            'bg-gray-100 text-gray-600'
+                          }`}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {/* User Profile Section */}
+            <div className="border-t border-gray-200/50 pt-3 mt-3">
+              <div className="p-3 mb-2 bg-gradient-to-r from-gray-50/80 to-blue-50/80 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="text-sm font-semibold text-gray-700">Profile</span>
+                </div>
+                {user && (
+                  <div className="ml-10 mt-2 space-y-1">
+                    <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                    <p className="text-xs text-gray-600">{user.email}</p>
+                    {currentTenant && (
+                      <div className="flex items-center space-x-1">
+                        <Crown className="w-3 h-3 text-yellow-500" />
+                        <p className="text-xs text-blue-600 font-medium">{currentTenant.name}</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <button
+                onClick={handleLogout}
+                className="w-full flex items-center space-x-2 p-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 group"
+              >
+                <LogOut className="w-4 h-4 group-hover:scale-110 transition-transform duration-200" />
+                <span className="font-medium">Logout</span>
+              </button>
+            </div>
           </div>
         </div>
       )}

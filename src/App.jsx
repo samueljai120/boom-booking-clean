@@ -9,9 +9,7 @@ import { WebSocketProvider } from './contexts/WebSocketContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { BusinessHoursProvider } from './contexts/BusinessHoursContext';
 import { BusinessInfoProvider } from './contexts/BusinessInfoContext';
-import { TutorialProvider } from './contexts/TutorialContext';
 import AppleCalendarDashboard from './components/AppleCalendarDashboard';
-import InteractiveTutorial from './components/InteractiveTutorial';
 import PricingPage from './pages/PricingPage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -40,6 +38,8 @@ import AdminSystemSettings from './pages/AdminSystemSettings';
 import ApiTest from './components/ApiTest';
 import AuthTest from './components/AuthTest';
 import LoginTest from './components/LoginTest';
+import SubdomainAccess from './components/SubdomainAccess';
+import SubdomainUrlHandler from './components/SubdomainUrlHandler';
 import ScrollToTop from './components/ScrollToTop';
 import ScrollToTopButton from './components/ScrollToTopButton';
 import './index.css';
@@ -108,7 +108,10 @@ const queryClient = new QueryClient({
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   
+  console.log('🔒 ProtectedRoute check:', { user: user ? 'Present' : 'Missing', loading });
+  
   if (loading) {
+    console.log('⏳ ProtectedRoute: Loading state, showing spinner');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
@@ -117,17 +120,26 @@ const ProtectedRoute = ({ children }) => {
   }
   
   if (!user) {
+    console.log('❌ ProtectedRoute: No user, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
+  console.log('✅ ProtectedRoute: User authenticated, rendering children');
   return children;
 };
 
 const AppContent = () => {
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <ScrollToTop />
-      <Routes>
+      <TenantProvider>
+        <AuthProvider>
+          <WebSocketProvider>
+            <SettingsProvider>
+              <BusinessHoursProvider>
+              <BusinessInfoProvider>
+                <ScrollToTop />
+                <SubdomainUrlHandler />
+                <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/pricing" element={<PricingPage />} />
@@ -147,6 +159,7 @@ const AppContent = () => {
         <Route path="/api-test" element={<ApiTest />} />
         <Route path="/auth-test" element={<AuthTest />} />
         <Route path="/login-test" element={<LoginTest />} />
+        <Route path="/venue" element={<SubdomainAccess />} />
         
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminDashboard />} />
@@ -160,10 +173,7 @@ const AppContent = () => {
         {/* Protected Routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <TutorialProvider>
-              <AppleCalendarDashboard />
-              <InteractiveTutorial />
-            </TutorialProvider>
+            <AppleCalendarDashboard />
           </ProtectedRoute>
         } />
         <Route path="/ai-analytics" element={
@@ -181,7 +191,13 @@ const AppContent = () => {
             <TenantManagement />
           </ProtectedRoute>
         } />
-      </Routes>
+                  </Routes>
+                </BusinessInfoProvider>
+              </BusinessHoursProvider>
+            </SettingsProvider>
+          </WebSocketProvider>
+        </AuthProvider>
+      </TenantProvider>
     </Router>
   );
 };
@@ -190,47 +206,35 @@ function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TenantProvider>
-            <WebSocketProvider>
-              <SettingsProvider>
-                <BusinessHoursProvider>
-                  <BusinessInfoProvider>
-                  <div className="App">
-                    <AppContent />
-                    <ScrollToTopButton />
-                    <Toaster
-                      position="top-right"
-                      toastOptions={{
-                        duration: 4000,
-                        style: {
-                          background: '#363636',
-                          color: '#fff',
-                        },
-                        success: {
-                          duration: 3000,
-                          iconTheme: {
-                            primary: '#34C759',
-                            secondary: '#fff',
-                          },
-                        },
-                        error: {
-                          duration: 5000,
-                          iconTheme: {
-                            primary: '#FF3B30',
-                            secondary: '#fff',
-                          },
-                        },
-                      }}
-                    />
-                  </div>
-                  </BusinessInfoProvider>
-                </BusinessHoursProvider>
-                {/* React Query Devtools hidden for demo */}
-              </SettingsProvider>
-            </WebSocketProvider>
-          </TenantProvider>
-        </AuthProvider>
+        <div className="App">
+          <AppContent />
+          <ScrollToTopButton />
+          <Toaster
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+              success: {
+                duration: 3000,
+                iconTheme: {
+                  primary: '#34C759',
+                  secondary: '#fff',
+                },
+              },
+              error: {
+                duration: 5000,
+                iconTheme: {
+                  primary: '#FF3B30',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+        </div>
+        {/* React Query Devtools hidden for demo */}
       </QueryClientProvider>
     </ErrorBoundary>
   );

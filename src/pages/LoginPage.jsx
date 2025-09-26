@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useTenant } from '../contexts/TenantContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
 import { Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
+import AuthDebugger from '../components/AuthDebugger';
 
 const LoginPage = () => {
   const [formData, setFormData] = useState({
@@ -13,6 +15,7 @@ const LoginPage = () => {
   });
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
+  const { currentTenant } = useTenant();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -30,7 +33,8 @@ const LoginPage = () => {
       const result = await login(formData);
       if (result.success) {
         toast.success('Login successful!');
-        navigate('/dashboard');
+        // AuthContext will handle subdomain redirect automatically
+        // No need to navigate manually here
       } else {
         toast.error(result.message || 'Login failed');
       }
@@ -45,6 +49,8 @@ const LoginPage = () => {
     setLoading(true);
     try {
       console.log('🚀 Starting demo login...');
+      toast.loading('Logging into demo account...', { id: 'demo-login' });
+      
       const result = await login({
         email: 'demo@example.com',
         password: 'demo123'
@@ -52,26 +58,28 @@ const LoginPage = () => {
       console.log('📋 Demo login result:', result);
       
       if (result.success) {
-        toast.success('Demo login successful!');
-        navigate('/dashboard');
+        toast.success('Demo login successful! Redirecting to dashboard...', { id: 'demo-login' });
+        // AuthContext will handle subdomain redirect automatically
+        // No need to navigate manually here
       } else {
         console.error('❌ Demo login failed:', result.error);
-        toast.error(result.error || 'Demo login failed');
+        toast.error(result.error || 'Demo login failed. Please try again.', { id: 'demo-login' });
       }
     } catch (error) {
       console.error('❌ Demo login error:', error);
-      toast.error('Demo login error: ' + error.message);
+      toast.error('Demo login error: ' + error.message, { id: 'demo-login' });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
+      <AuthDebugger />
+      <div className="max-w-md w-full space-y-6">
         {/* Header */}
         <div className="text-center">
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
+          <h2 className="mt-4 text-3xl font-extrabold text-gray-900">
             Sign in to Boom Booking
           </h2>
           <p className="mt-2 text-sm text-gray-600">
@@ -80,8 +88,8 @@ const LoginPage = () => {
         </div>
 
         {/* Login Form */}
-        <Card className="mt-8">
-          <CardContent className="p-8">
+        <Card className="mt-6">
+          <CardContent className="p-6 sm:p-8">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
@@ -155,6 +163,13 @@ const LoginPage = () => {
                 >
                   {loading ? 'Loading...' : '🚀 Demo Login'}
                 </Button>
+                
+                {/* Demo Login Info */}
+                <div className="text-center">
+                  <p className="text-xs text-gray-500">
+                    Demo account includes sample rooms and bookings
+                  </p>
+                </div>
               </div>
             </form>
 
@@ -181,7 +196,7 @@ const LoginPage = () => {
         </Card>
 
         {/* Features Preview */}
-        <div className="mt-8 text-center">
+        <div className="mt-6 text-center">
           <h3 className="text-lg font-medium text-gray-900 mb-4">🤖 AI-Powered Features</h3>
           <div className="grid grid-cols-1 gap-4 text-sm text-gray-600">
             <div className="flex items-center justify-center space-x-2">

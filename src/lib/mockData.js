@@ -5,10 +5,29 @@ export const mockData = {
     id: 1,
     username: 'demo@example.com',
     name: 'Demo User',
-    role: 'admin'
+    role: 'admin',
+    tenant_id: 1 // Add tenant_id for demo user
   },
 
-  // Mock rooms data
+  // Mock tenant data
+  tenants: [
+    {
+      id: 1,
+      name: 'Demo Karaoke',
+      subdomain: 'demo',
+      domain: 'demo.localhost',
+      plan_type: 'premium',
+      status: 'active',
+      settings: {
+        theme: 'default',
+        timezone: 'UTC'
+      },
+      created_at: new Date(),
+      updated_at: new Date()
+    }
+  ],
+
+  // Mock rooms data - Enhanced with more rooms
   rooms: [
     {
       _id: 1,
@@ -48,10 +67,75 @@ export const mockData = {
       status: 'active',
       color: '#F59E0B',
       hourlyRate: 50
+    },
+    {
+      _id: 4,
+      id: 4,
+      name: 'Room D',
+      capacity: 10,
+      category: 'Premium',
+      amenities: ['Microphone', 'TV', 'Sound System', 'Lighting', 'Bar', 'Dance Floor'],
+      isActive: true,
+      isBookable: true,
+      status: 'active',
+      color: '#8B5CF6',
+      hourlyRate: 60
+    },
+    {
+      _id: 5,
+      id: 5,
+      name: 'Room E',
+      capacity: 12,
+      category: 'VIP',
+      amenities: ['Microphone', 'TV', 'Sound System', 'Lighting', 'Bar', 'Dance Floor', 'Private Entrance'],
+      isActive: true,
+      isBookable: true,
+      status: 'active',
+      color: '#EF4444',
+      hourlyRate: 75
+    },
+    {
+      _id: 6,
+      id: 6,
+      name: 'Room F',
+      capacity: 15,
+      category: 'VIP',
+      amenities: ['Microphone', 'TV', 'Sound System', 'Lighting', 'Bar', 'Dance Floor', 'Private Entrance', 'Catering'],
+      isActive: true,
+      isBookable: true,
+      status: 'active',
+      color: '#EC4899',
+      hourlyRate: 90
+    },
+    {
+      _id: 7,
+      id: 7,
+      name: 'Room G',
+      capacity: 6,
+      category: 'Standard',
+      amenities: ['Microphone', 'TV', 'Sound System', 'Lighting'],
+      isActive: true,
+      isBookable: true,
+      status: 'active',
+      color: '#06B6D4',
+      hourlyRate: 30
+    },
+    {
+      _id: 8,
+      id: 8,
+      name: 'Room H',
+      capacity: 8,
+      category: 'Premium',
+      amenities: ['Microphone', 'TV', 'Sound System', 'Lighting', 'Bar'],
+      isActive: true,
+      isBookable: true,
+      status: 'active',
+      color: '#84CC16',
+      hourlyRate: 45
     }
   ],
 
-  // Mock bookings data
+  // Mock bookings data - Enhanced with diverse bookings across multiple rooms and sources
   bookings: [
     {
       _id: 1,
@@ -134,8 +218,8 @@ export const mockData = {
     {
       _id: 4,
       id: 4,
-      roomId: 1,
-      room: 1,
+      roomId: 4,
+      room: 4,
       customerName: 'Sarah Wilson',
       email: 'sarah@example.com',
       phone: '+1555987654',
@@ -146,11 +230,11 @@ export const mockData = {
       status: 'confirmed',
       source: 'online',
       priority: 'normal',
-      partySize: 3,
-      basePrice: 40.00,
+      partySize: 10,
+      basePrice: 120.00,
       additionalFees: 0,
       discount: 0,
-      totalPrice: 40.00,
+      totalPrice: 120.00,
       notes: 'Anniversary celebration',
       specialRequests: 'Romantic setup',
       confirmationCode: 'BK004',
@@ -160,26 +244,208 @@ export const mockData = {
     {
       _id: 5,
       id: 5,
-      roomId: 2,
-      room: 2,
-      customerName: 'Test Booking',
-      email: 'test@example.com',
+      roomId: 5,
+      room: 5,
+      customerName: 'David Chen',
+      email: 'david@example.com',
       phone: '+1555111111',
       startTime: new Date(2025, 8, 18, 18, 0, 0), // September 18, 2025 at 6 PM
-      endTime: new Date(2025, 8, 18, 19, 0, 0), // September 18, 2025 at 7 PM
+      endTime: new Date(2025, 8, 18, 21, 0, 0), // September 18, 2025 at 9 PM
       timeIn: new Date(2025, 8, 18, 18, 0, 0),
-      timeOut: new Date(2025, 8, 18, 19, 0, 0),
+      timeOut: new Date(2025, 8, 18, 21, 0, 0),
       status: 'confirmed',
-      source: 'phone',
+      source: 'facebook',
       priority: 'normal',
-      partySize: 2,
-      basePrice: 30.00,
+      partySize: 12,
+      basePrice: 225.00,
+      additionalFees: 25.00,
+      discount: 0,
+      totalPrice: 250.00,
+      notes: 'Graduation celebration',
+      specialRequests: 'Photo backdrop needed',
+      confirmationCode: 'BK005',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: 6,
+      id: 6,
+      roomId: 6,
+      room: 6,
+      customerName: 'Lisa Brown',
+      email: 'lisa@example.com',
+      phone: '+1555222222',
+      startTime: new Date(2025, 8, 19, 19, 0, 0), // September 19, 2025 at 7 PM
+      endTime: new Date(2025, 8, 19, 23, 0, 0), // September 19, 2025 at 11 PM
+      timeIn: new Date(2025, 8, 19, 19, 0, 0),
+      timeOut: new Date(2025, 8, 19, 23, 0, 0),
+      status: 'confirmed',
+      source: 'instagram',
+      priority: 'high',
+      partySize: 15,
+      basePrice: 360.00,
+      additionalFees: 40.00,
+      discount: 20.00,
+      totalPrice: 380.00,
+      notes: 'Company party',
+      specialRequests: 'Catering and decorations',
+      confirmationCode: 'BK006',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: 7,
+      id: 7,
+      roomId: 7,
+      room: 7,
+      customerName: 'Robert Taylor',
+      email: 'robert@example.com',
+      phone: '+1555333333',
+      startTime: new Date(2025, 8, 20, 16, 0, 0), // September 20, 2025 at 4 PM
+      endTime: new Date(2025, 8, 20, 18, 0, 0), // September 20, 2025 at 6 PM
+      timeIn: new Date(2025, 8, 20, 16, 0, 0),
+      timeOut: new Date(2025, 8, 20, 18, 0, 0),
+      status: 'confirmed',
+      source: 'google',
+      priority: 'normal',
+      partySize: 6,
+      basePrice: 60.00,
       additionalFees: 0,
       discount: 0,
-      totalPrice: 30.00,
-      notes: 'Test reservation',
+      totalPrice: 60.00,
+      notes: 'Friend gathering',
       specialRequests: 'None',
-      confirmationCode: 'BK005',
+      confirmationCode: 'BK007',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: 8,
+      id: 8,
+      roomId: 8,
+      room: 8,
+      customerName: 'Jennifer Garcia',
+      email: 'jennifer@example.com',
+      phone: '+1555444444',
+      startTime: new Date(2025, 8, 21, 20, 0, 0), // September 21, 2025 at 8 PM
+      endTime: new Date(2025, 8, 21, 23, 0, 0), // September 21, 2025 at 11 PM
+      timeIn: new Date(2025, 8, 21, 20, 0, 0),
+      timeOut: new Date(2025, 8, 21, 23, 0, 0),
+      status: 'pending',
+      source: 'referral',
+      priority: 'normal',
+      partySize: 8,
+      basePrice: 135.00,
+      additionalFees: 15.00,
+      discount: 10.00,
+      totalPrice: 140.00,
+      notes: 'Bachelorette party',
+      specialRequests: 'Special decorations',
+      confirmationCode: 'BK008',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: 9,
+      id: 9,
+      roomId: 1,
+      room: 1,
+      customerName: 'Michael Martinez',
+      email: 'michael@example.com',
+      phone: '+1555555555',
+      startTime: new Date(2025, 8, 22, 17, 0, 0), // September 22, 2025 at 5 PM
+      endTime: new Date(2025, 8, 22, 19, 0, 0), // September 22, 2025 at 7 PM
+      timeIn: new Date(2025, 8, 22, 17, 0, 0),
+      timeOut: new Date(2025, 8, 22, 19, 0, 0),
+      status: 'confirmed',
+      source: 'yelp',
+      priority: 'normal',
+      partySize: 4,
+      basePrice: 50.00,
+      additionalFees: 0,
+      discount: 5.00,
+      totalPrice: 45.00,
+      notes: 'Retirement celebration',
+      specialRequests: 'None',
+      confirmationCode: 'BK009',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: 10,
+      id: 10,
+      roomId: 2,
+      room: 2,
+      customerName: 'Amanda Anderson',
+      email: 'amanda@example.com',
+      phone: '+1555666666',
+      startTime: new Date(2025, 8, 23, 18, 0, 0), // September 23, 2025 at 6 PM
+      endTime: new Date(2025, 8, 23, 21, 0, 0), // September 23, 2025 at 9 PM
+      timeIn: new Date(2025, 8, 23, 18, 0, 0),
+      timeOut: new Date(2025, 8, 23, 21, 0, 0),
+      status: 'confirmed',
+      source: 'tiktok',
+      priority: 'high',
+      partySize: 6,
+      basePrice: 105.00,
+      additionalFees: 10.00,
+      discount: 0,
+      totalPrice: 115.00,
+      notes: 'Holiday party',
+      specialRequests: 'Holiday decorations',
+      confirmationCode: 'BK010',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: 11,
+      id: 11,
+      roomId: 3,
+      room: 3,
+      customerName: 'Christopher Lee',
+      email: 'chris@example.com',
+      phone: '+1555777777',
+      startTime: new Date(2025, 8, 24, 19, 0, 0), // September 24, 2025 at 7 PM
+      endTime: new Date(2025, 8, 24, 22, 0, 0), // September 24, 2025 at 10 PM
+      timeIn: new Date(2025, 8, 24, 19, 0, 0),
+      timeOut: new Date(2025, 8, 24, 22, 0, 0),
+      status: 'confirmed',
+      source: 'walk_in',
+      priority: 'normal',
+      partySize: 8,
+      basePrice: 150.00,
+      additionalFees: 0,
+      discount: 0,
+      totalPrice: 150.00,
+      notes: 'Team building event',
+      specialRequests: 'Team activities setup',
+      confirmationCode: 'BK011',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    },
+    {
+      _id: 12,
+      id: 12,
+      roomId: 4,
+      room: 4,
+      customerName: 'Jessica White',
+      email: 'jessica@example.com',
+      phone: '+1555888888',
+      startTime: new Date(2025, 8, 25, 20, 0, 0), // September 25, 2025 at 8 PM
+      endTime: new Date(2025, 8, 25, 23, 0, 0), // September 25, 2025 at 11 PM
+      timeIn: new Date(2025, 8, 25, 20, 0, 0),
+      timeOut: new Date(2025, 8, 25, 23, 0, 0),
+      status: 'pending',
+      source: 'phone',
+      priority: 'normal',
+      partySize: 10,
+      basePrice: 180.00,
+      additionalFees: 20.00,
+      discount: 15.00,
+      totalPrice: 185.00,
+      notes: 'Product launch party',
+      specialRequests: 'Branded decorations',
+      confirmationCode: 'BK012',
       createdAt: new Date(),
       updatedAt: new Date()
     }
@@ -221,7 +487,10 @@ export const mockAPI = {
           resolve({
             success: true,
             data: {
-              user: mockData.user,
+              user: {
+                ...mockData.user,
+                tenant_id: 1 // Ensure tenant_id is included
+              },
               token: 'mock-jwt-token-' + Date.now()
             }
           });
@@ -605,6 +874,30 @@ export const mockAPI = {
           } 
         });
       }, 100);
+    });
+  },
+
+  // Tenants mock
+  getTenants: (params = {}) => {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        let tenants = [...mockData.tenants];
+        
+        // Filter by ID if provided
+        if (params.id) {
+          tenants = tenants.filter(tenant => tenant.id === parseInt(params.id));
+        }
+        
+        // Filter by subdomain if provided
+        if (params.subdomain) {
+          tenants = tenants.filter(tenant => tenant.subdomain === params.subdomain);
+        }
+        
+        resolve({
+          success: true,
+          data: tenants
+        });
+      }, 300);
     });
   }
 };

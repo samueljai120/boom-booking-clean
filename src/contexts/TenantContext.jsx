@@ -20,10 +20,53 @@ export const TenantProvider = ({ children }) => {
 
   // Detect subdomain and load tenant on mount
   useEffect(() => {
+    let isMounted = true; // Prevent state updates after component unmount
+    
     const detectSubdomainAndLoadTenant = async () => {
       try {
-        // Get subdomain information from API
-        const response = await fetch('/api/subdomain');
+        setLoading(true);
+        
+        // Check URL parameters first for subdomain
+        const urlParams = new URLSearchParams(window.location.search);
+        const subdomainParam = urlParams.get('subdomain');
+        
+        if (subdomainParam) {
+          console.log(`🔍 Detected subdomain from URL: ${subdomainParam}`);
+          const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+          const response = await fetch(`${API_BASE_URL}/subdomain-router?subdomain=${subdomainParam}`);
+          
+          if (!isMounted) return; // Prevent state updates if component unmounted
+          
+          // Check if response is JSON
+          const contentType = response.headers.get('content-type');
+          if (!contentType || !contentType.includes('application/json')) {
+            console.error('❌ Non-JSON response from subdomain-router:', response.status);
+            throw new Error('Invalid response format from subdomain router');
+          }
+          
+          const result = await response.json();
+          
+          if (result.success && result.data.tenant) {
+            setSubdomainInfo(result.data);
+            setCurrentTenant(result.data.tenant);
+            console.log(`✅ Loaded tenant from URL subdomain: ${result.data.tenant.name}`);
+            return;
+          }
+        }
+        
+        // Try to detect subdomain from Host header
+        const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+        const response = await fetch(`${API_BASE_URL}/subdomain-detector`);
+        
+        if (!isMounted) return; // Prevent state updates if component unmounted
+        
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('❌ Non-JSON response from subdomain-detector:', response.status);
+          throw new Error('Invalid response format from subdomain detector');
+        }
+        
         const result = await response.json();
         
         if (result.success) {
@@ -32,6 +75,7 @@ export const TenantProvider = ({ children }) => {
           // If we have a valid tenant from subdomain, use it
           if (result.data.tenant && result.data.isValid) {
             setCurrentTenant(result.data.tenant);
+            console.log(`✅ Loaded tenant from Host subdomain: ${result.data.tenant.name}`);
             return;
           }
         }
@@ -40,7 +84,11 @@ export const TenantProvider = ({ children }) => {
         const savedTenant = localStorage.getItem('currentTenant');
         if (savedTenant) {
           try {
-            setCurrentTenant(JSON.parse(savedTenant));
+            const parsedTenant = JSON.parse(savedTenant);
+            if (isMounted) {
+              setCurrentTenant(parsedTenant);
+              console.log(`✅ Loaded tenant from localStorage: ${parsedTenant.name}`);
+            }
           } catch (err) {
             console.error('Error parsing saved tenant:', err);
             localStorage.removeItem('currentTenant');
@@ -52,16 +100,28 @@ export const TenantProvider = ({ children }) => {
         const savedTenant = localStorage.getItem('currentTenant');
         if (savedTenant) {
           try {
-            setCurrentTenant(JSON.parse(savedTenant));
+            const parsedTenant = JSON.parse(savedTenant);
+            if (isMounted) {
+              setCurrentTenant(parsedTenant);
+            }
           } catch (err) {
             console.error('Error parsing saved tenant:', err);
             localStorage.removeItem('currentTenant');
           }
         }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     detectSubdomainAndLoadTenant();
+    
+    // Cleanup function to prevent state updates after unmount
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Save current tenant to localStorage when it changes
@@ -342,6 +402,14 @@ export const TenantProvider = ({ children }) => {
     return `${protocol}//${tenant.subdomain}.${hostname}`;
   };
 
+  const clearTenantData = () => {
+    setCurrentTenant(null);
+    setTenants([]);
+    setSubdomainInfo(null);
+    setError(null);
+    localStorage.removeItem('currentTenant');
+  };
+
   const value = {
     // State
     currentTenant,
@@ -369,7 +437,8 @@ export const TenantProvider = ({ children }) => {
     
     // Utilities
     setCurrentTenant,
-    clearError: () => setError(null)
+    clearError: () => setError(null),
+    clearTenantData
   };
 
   return (

@@ -1,5 +1,5 @@
 // Vercel API Route: /api/rooms
-import { sql, initDatabase } from '../lib/neon-db.js';
+import { sql, initDatabase, validateJsonbField } from '../lib/neon-db.js';
 import { withTenantContext } from '../lib/subdomain-middleware.js';
 
 async function roomsHandler(req, res) {
@@ -74,7 +74,7 @@ async function roomsHandler(req, res) {
       description: row.description,
       pricePerHour: parseFloat(row.price_per_hour),
       isActive: row.is_active,
-      metadata: row.metadata
+      metadata: validateJsonbField(row.metadata, 'room.metadata')
     }));
 
     res.status(200).json({

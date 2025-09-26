@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useBusinessHours } from '../contexts/BusinessHoursContext';
-import { useTutorial } from '../contexts/TutorialContext';
+import { useTenant } from '../contexts/TenantContext';
 import moment from 'moment-timezone';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { roomsAPI, bookingsAPI } from '../lib/api';
@@ -26,6 +26,7 @@ import InstructionsModal from './InstructionsModal';
 import ReservationViewModal from './ReservationViewModal';
 import BookingConfirmation from './BookingConfirmation';
 import LoadingSkeleton from './LoadingSkeleton';
+import MenuButton from './MenuButton';
 import toast from 'react-hot-toast';
 import {
   DndContext,
@@ -488,16 +489,7 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
   const [calendarBaseDate, setCalendarBaseDate] = useState(selectedDate);
   const { settings } = useSettings();
   const { businessHours, getBusinessHoursForDay, getTimeSlotsForDay, isWithinBusinessHours } = useBusinessHours();
-  const { showTutorialButton, startTutorial, restartTutorial, tutorialCompleted, tutorialSkipped, isInitialized } = useTutorial();
-  
-  // Handle tutorial button click
-  const handleTutorialClick = () => {
-    if (tutorialCompleted || tutorialSkipped) {
-      restartTutorial();
-    } else {
-      startTutorial();
-    }
-  };
+  const { currentTenant } = useTenant();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeId, setActiveId] = useState(null);
@@ -1212,6 +1204,8 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
 
           return {
             ...booking,
+            startMinutes: visibleStartMinutes,
+            durationMinutes: visibleDurationMinutes,
             startHours: visibleStartHours,
             endHours: visibleStartHours + visibleDurationHours,
             durationHours: visibleDurationHours,
@@ -1767,12 +1761,26 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
           <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} mb-2`}>
             <div className={`flex items-center space-x-2 ${sidebarOpen ? '' : 'hidden'}`}>
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-lg">♪</span>
+                <span className="text-white text-lg font-bold">
+                  {currentTenant ? currentTenant.name.charAt(0).toUpperCase() : 'K'}
+                </span>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900">Karaoke Calendar</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {currentTenant ? currentTenant.name : 'Karaoke Calendar'}
+              </h1>
             </div>
-            <Button variant="ghost" size="icon" className="h-12 w-12 min-h-[48px]" onClick={() => setSidebarOpen(v => !v)} title={sidebarOpen ? 'Collapse' : 'Expand'}>
-              <Menu className="w-10 h-10" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-12 w-12 min-h-[48px] hover:bg-gray-100" 
+              onClick={() => setSidebarOpen(v => !v)} 
+              title={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
+            >
+              {sidebarOpen ? (
+                <ChevronLeft className="w-6 h-6 text-gray-600" />
+              ) : (
+                <ChevronRight className="w-6 h-6 text-gray-600" />
+              )}
             </Button>
           </div>
           
@@ -1897,95 +1905,11 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
             </div>
           )}
 
-          {/* User Profile */}
-          <div className="mt-8 flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center">
-              <span className="text-gray-600 font-medium">N</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Staff User</p>
-              <p className="text-xs text-gray-500">admin@boomkaraoke.com</p>
-            </div>
-          </div>
         </div>
 
-        {/* Bottom Sticky Actions: Analytics + Customer Base + Instructions + Settings */}
-        <div className="mt-auto border-t border-gray-200 p-2 space-y-2">
-          {sidebarOpen ? (
-            <>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => setShowAnalytics(true)}
-              >
-                <BarChart3 className="w-4 h-4 mr-3" />
-                Analytics
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => setShowCustomerBase(true)}
-              >
-                <Users className="w-4 h-4 mr-3" />
-                Customer Base
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => setShowInstructions(true)}
-              >
-                <CalendarIcon className="w-4 h-4 mr-3" />
-                Instructions
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={onSettingsClick}
-              >
-                <Settings className="w-4 h-4 mr-3" />
-                Settings
-              </Button>
-            </>
-          ) : (
-            <div className="flex flex-col items-center space-y-2">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={() => setShowAnalytics(true)}
-                title="Analytics"
-              >
-                <BarChart3 className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={() => setShowCustomerBase(true)}
-                title="Customer Base"
-              >
-                <Users className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={() => setShowInstructions(true)}
-                title="Instructions"
-              >
-                <CalendarIcon className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={onSettingsClick}
-                title="Settings"
-              >
-                <Settings className="w-6 h-6" />
-              </Button>
-            </div>
-          )}
+        {/* Bottom Sticky Actions: Removed - MenuButton now floats independently */}
+        <div className="mt-auto border-t border-gray-200 p-2">
+          {/* Empty space for layout consistency */}
         </div>
       </div>
 
@@ -2189,6 +2113,23 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
           const roomBookings = bookingsByRoom[roomId] || [];
 
           return roomBookings.map((booking) => {
+            // Calculate proper positioning to align with grid slots
+            // Use the same positioning logic as AppleCalendarDashboard for consistency
+            const timeInterval = settings.timeInterval || 15;
+            
+            // Calculate top position based on actual time, not room index
+            const topPixels = (booking.startMinutes / timeInterval) * SLOT_HEIGHT;
+            const heightPixels = (booking.durationMinutes / timeInterval) * SLOT_HEIGHT;
+            
+            // Ensure minimum height for visibility
+            const minHeight = 1;
+            const finalHeightPixels = Math.max(heightPixels, minHeight);
+            
+            // Skip invalid bookings
+            if (finalHeightPixels <= 0 || topPixels < 0 || isNaN(topPixels) || isNaN(finalHeightPixels)) {
+              return null;
+            }
+            
             // Passing SLOT_WIDTH to DraggableBooking
             return (
             <DraggableBooking
@@ -2208,8 +2149,8 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
                 position: 'absolute',
                 left: `${booking.leftPixels}px`,
                 width: `${booking.widthPixels}px`,
-                top: `${roomIndex * SLOT_HEIGHT}px`, // Align with room row
-                height: `${SLOT_HEIGHT}px`, // Full height to match slot
+                top: `${topPixels}px`, // Align with actual time slots, not room rows
+                height: `${finalHeightPixels}px`, // Height based on actual duration
                 backgroundColor: settings.colorByBookingSource ? (settings.bookingSourceColors?.[(booking.source || '').toLowerCase() === 'walk_in' ? 'walkin' : (booking.source || '').toLowerCase()] || settings.bookingSourceColors?.online || '#2563eb') : (room.color || getRoomTypeColor(room.category)),
                 zIndex: 10,
                 pointerEvents: 'auto',
@@ -2293,19 +2234,6 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
       <Plus className="w-8 h-8" />
     </button>
 
-    {/* Floating Tutorial Button - only show for first-time users */}
-    {isInitialized && showTutorialButton && (
-      <button
-        type="button"
-        onClick={handleTutorialClick}
-        className="fixed bottom-6 left-6 h-14 w-14 rounded-full bg-purple-600 text-white shadow-xl hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300 z-50 flex items-center justify-center animate-pulse"
-        aria-label={tutorialCompleted || tutorialSkipped ? "Restart tutorial" : "Start tutorial"}
-        title={tutorialCompleted || tutorialSkipped ? "Restart interactive tutorial" : "Start interactive tutorial"}
-      >
-        <HelpCircle className="w-6 h-6" />
-      </button>
-    )}
-
     <ReservationViewModal
       isOpen={isViewModalOpen}
       onClose={() => {
@@ -2379,6 +2307,19 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
         </div>
       </div>
     )}
+
+    {/* Floating Menu Button - Bottom Left */}
+    <div className="fixed bottom-6 left-6 z-40">
+      <MenuButton
+        sidebarOpen={sidebarOpen}
+        onShowAIBooking={() => {}} // Not available in TraditionalSchedule
+        onShowAIAnalytics={() => {}} // Not available in TraditionalSchedule
+        onShowAnalytics={() => setShowAnalytics(true)}
+        onShowCustomerBase={() => setShowCustomerBase(true)}
+        onShowInstructions={() => setShowInstructions(true)}
+        onShowSettings={onSettingsClick}
+      />
+    </div>
     </>
   );
 };

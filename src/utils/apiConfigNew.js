@@ -1,4 +1,6 @@
-// Utility function to get API base URL from environment variables
+// NEW API Configuration - Force complete refresh
+// This file replaces the old apiConfig.js to force browser cache refresh
+
 export const getApiBaseUrl = () => {
   // Check for production backend URL first
   if (import.meta.env.VITE_API_BASE_URL) {
@@ -16,9 +18,9 @@ export const getApiBaseUrl = () => {
     return '/api';
   }
   
-  // Development fallback - Express server on port 3000
-  // Force refresh to clear browser cache - ${Date.now()}
-  return 'http://localhost:3000/api';
+  // Development fallback - Vercel API routes on port 3001
+  // FORCE REFRESH - NEW CONFIG FILE
+  return 'http://localhost:3001/api';
 };
 
 // Utility function to get WebSocket URL from environment variables

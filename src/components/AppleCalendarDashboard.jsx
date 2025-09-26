@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useBusinessHours } from '../contexts/BusinessHoursContext';
-import { useTutorial } from '../contexts/TutorialContext';
 import BookingModal from './BookingModal';
 import ReservationViewModal from './ReservationViewModal';
 import SettingsModal from './SettingsModal';
@@ -31,6 +30,7 @@ import TraditionalSchedule from './TraditionalSchedule';
 import LoadingSkeleton from './LoadingSkeleton';
 import AIBookingAssistant from './AIBookingAssistant';
 import AIAnalyticsDashboard from './AIAnalyticsDashboard';
+import MenuButton from './MenuButton';
 import toast from 'react-hot-toast';
 import {
   DndContext,
@@ -370,16 +370,6 @@ const AppleCalendarDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const { settings } = useSettings();
   const { businessHours, getBusinessHoursForDay, getTimeSlotsForDay, isWithinBusinessHours } = useBusinessHours();
-  const { showTutorialButton, startTutorial, restartTutorial, tutorialCompleted, tutorialSkipped, isInitialized } = useTutorial();
-
-  // Handle tutorial button click
-  const handleTutorialClick = () => {
-    if (tutorialCompleted || tutorialSkipped) {
-      restartTutorial();
-    } else {
-      startTutorial();
-    }
-  };
 
   // Responsive viewport tracking for adaptive sizing
   const [windowWidth, setWindowWidth] = React.useState(
@@ -1582,12 +1572,26 @@ const AppleCalendarDashboard = () => {
           <div className={`flex items-center ${sidebarOpen ? 'justify-between' : 'justify-center'} mb-2`}>
             <div className={`flex items-center space-x-2 ${sidebarOpen ? '' : 'hidden'}`}>
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white text-lg">♪</span>
+                <span className="text-white text-lg font-bold">
+                  {currentTenant ? currentTenant.name.charAt(0).toUpperCase() : 'K'}
+                </span>
               </div>
-              <h1 className="text-xl font-semibold text-gray-900">Karaoke Calendar</h1>
+              <h1 className="text-xl font-semibold text-gray-900">
+                {currentTenant ? currentTenant.name : 'Karaoke Calendar'}
+              </h1>
             </div>
-            <Button variant="ghost" size="icon" className="h-12 w-12 min-h-[48px]" onClick={() => setSidebarOpen(v => !v)} title={sidebarOpen ? 'Collapse' : 'Expand'}>
-              <Menu className="w-10 h-10" />
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-12 w-12 min-h-[48px] hover:bg-gray-100" 
+              onClick={() => setSidebarOpen(v => !v)} 
+              title={sidebarOpen ? 'Hide Sidebar' : 'Show Sidebar'}
+            >
+              {sidebarOpen ? (
+                <ChevronLeft className="w-6 h-6 text-gray-600" />
+              ) : (
+                <ChevronRight className="w-6 h-6 text-gray-600" />
+              )}
             </Button>
           </div>
         </div>
@@ -1689,131 +1693,13 @@ const AppleCalendarDashboard = () => {
             </div>
           )}
 
-          {/* User Profile */}
-          <div className="mt-8 flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gray-300 rounded-lg flex items-center justify-center">
-              <span className="text-gray-600 font-medium">N</span>
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Staff User</p>
-              <p className="text-xs text-gray-500">admin@boomkaraoke.com</p>
-            </div>
-          </div>
 
           
         </div>
 
-        {/* Bottom Sticky Actions: AI Features + Analytics + Customer Base + Instructions + Settings */}
-        <div className="mt-auto border-t border-gray-200 p-2 space-y-2">
-          {sidebarOpen ? (
-            <>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                onClick={() => setShowAIBooking(true)}
-              >
-                <Brain className="w-4 h-4 mr-3" />
-                AI Assistant
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                onClick={() => setShowAIAnalytics(true)}
-              >
-                <Zap className="w-4 h-4 mr-3" />
-                AI Analytics
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => setShowAnalytics(true)}
-              >
-                <BarChart3 className="w-4 h-4 mr-3" />
-                Analytics
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => setShowCustomerBase(true)}
-              >
-                <Users className="w-4 h-4 mr-3" />
-                Customer Base
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => setShowInstructions(true)}
-              >
-                <CalendarIcon className="w-4 h-4 mr-3" />
-                Instructions
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => setShowSettings(true)}
-              >
-                <Settings className="w-4 h-4 mr-3" />
-                Settings
-              </Button>
-            </>
-          ) : (
-            <div className="flex flex-col items-center space-y-2">
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12 text-purple-600 hover:text-purple-700 hover:bg-purple-50"
-                onClick={() => setShowAIBooking(true)}
-                title="AI Assistant"
-              >
-                <Brain className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12 text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                onClick={() => setShowAIAnalytics(true)}
-                title="AI Analytics"
-              >
-                <Zap className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={() => setShowAnalytics(true)}
-                title="Analytics"
-              >
-                <BarChart3 className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={() => setShowCustomerBase(true)}
-                title="Customer Base"
-              >
-                <Users className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={() => setShowInstructions(true)}
-                title="Instructions"
-              >
-                <CalendarIcon className="w-6 h-6" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                className="h-12 w-12"
-                onClick={() => setShowSettings(true)}
-                title="Settings"
-              >
-                <Settings className="w-6 h-6" />
-              </Button>
-            </div>
-          )}
+        {/* Bottom Sticky Actions: Removed - MenuButton now floats independently */}
+        <div className="mt-auto border-t border-gray-200 p-2">
+          {/* Empty space for layout consistency */}
         </div>
       </div>
 
@@ -2084,19 +1970,6 @@ const AppleCalendarDashboard = () => {
           <Plus className="w-8 h-8" />
         </button>
 
-        {/* Floating Tutorial Button - only show for first-time users */}
-        {isInitialized && showTutorialButton && (
-          <button
-            type="button"
-            onClick={handleTutorialClick}
-            className="fixed bottom-6 left-6 h-14 w-14 rounded-full bg-purple-600 text-white shadow-xl hover:bg-purple-700 focus:outline-none focus:ring-4 focus:ring-purple-300 z-50 flex items-center justify-center animate-pulse"
-            aria-label={tutorialCompleted || tutorialSkipped ? "Restart tutorial" : "Start tutorial"}
-            title={tutorialCompleted || tutorialSkipped ? "Restart interactive tutorial" : "Start interactive tutorial"}
-          >
-            <HelpCircle className="w-6 h-6" />
-          </button>
-        )}
-
         {/* Reservation View Modal */}
         <ReservationViewModal
           isOpen={isViewModalOpen}
@@ -2209,6 +2082,19 @@ const AppleCalendarDashboard = () => {
           </div>
         </div>
       )}
+
+      {/* Floating Menu Button - Bottom Left */}
+      <div className="fixed bottom-6 left-6 z-40">
+        <MenuButton
+          sidebarOpen={sidebarOpen}
+          onShowAIBooking={() => setShowAIBooking(true)}
+          onShowAIAnalytics={() => setShowAIAnalytics(true)}
+          onShowAnalytics={() => setShowAnalytics(true)}
+          onShowCustomerBase={() => setShowCustomerBase(true)}
+          onShowInstructions={() => setShowInstructions(true)}
+          onShowSettings={() => setShowSettings(true)}
+        />
+      </div>
     </>
   );
 };

@@ -283,13 +283,14 @@ export const availabilityAPI = {
 
 // Business Hours API
 export const businessHoursAPI = {
-  get: async () => {
+  get: async (tenantId = null) => {
     if (isMockMode) {
       return mockAPI.getBusinessHours();
     }
     
     try {
-      const response = await apiClient.get('/business-hours');
+      const url = tenantId ? `/business-hours?tenant_id=${tenantId}` : '/business-hours';
+      const response = await apiClient.get(url);
       
       // Handle our current API format
       if (response.data.success && response.data.data?.businessHours) {
@@ -333,7 +334,7 @@ export const businessHoursAPI = {
     }
   },
   
-  update: async (data) => {
+  update: async (data, tenantId = null) => {
     if (isMockMode) {
       return mockAPI.updateBusinessHours(data);
     }
@@ -343,7 +344,8 @@ export const businessHoursAPI = {
       // Convert frontend format to backend format
       const backendHours = convertToBackendFormat(data.businessHours || data);
       
-      const response = await apiClient.put('/business-hours', {
+      const url = tenantId ? `/business-hours?tenant_id=${tenantId}` : '/business-hours';
+      const response = await apiClient.put(url, {
         hours: backendHours
       });
       

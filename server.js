@@ -21,13 +21,39 @@ const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  origin: ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3008', 'http://127.0.0.1:3000', 'http://127.0.0.1:3001', 'http://127.0.0.1:3008'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: [
+    'Content-Type', 
+    'Authorization', 
+    'X-Requested-With', 
+    'X-CSRF-Token',
+    'Accept',
+    'Accept-Version',
+    'Content-Length',
+    'Content-MD5',
+    'Date',
+    'X-Api-Version'
+  ],
   credentials: true
 }));
 app.use(express.json());
-app.use(express.static(join(__dirname, 'dist')));
+
+// Configure static file serving with proper MIME types
+app.use(express.static(join(__dirname, 'dist'), {
+  setHeaders: (res, path) => {
+    // Set proper MIME types for JavaScript modules
+    if (path.endsWith('.js')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    if (path.endsWith('.mjs')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+    if (path.endsWith('.jsx')) {
+      res.setHeader('Content-Type', 'application/javascript');
+    }
+  }
+}));
 
 // Database connection
 const sql = neon(process.env.DATABASE_URL);
@@ -64,30 +90,8 @@ app.get('/api/health', async (req, res) => {
   }
 });
 
-// Business hours
-app.get('/api/business-hours', async (req, res) => {
-  try {
-    const hours = await sql`
-      SELECT day_of_week as "dayOfWeek", 
-             open_time as "openTime", 
-             close_time as "closeTime", 
-             is_closed as "isClosed"
-      FROM business_hours 
-      ORDER BY day_of_week
-    `;
-    
-    res.json({
-      success: true,
-      data: hours
-    });
-  } catch (error) {
-    console.error('Business hours error:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch business hours'
-    });
-  }
-});
+// Business hours - handled by Vercel API route /api/business-hours.js
+// This endpoint is removed to prevent conflicts with the Vercel serverless function
 
 // Rooms
 app.get('/api/rooms', async (req, res) => {
@@ -424,6 +428,214 @@ app.use((req, res, next) => {
       `);
     }
   });
+});
+
+// Subdomain Router API endpoint
+app.get('/api/subdomain-router', async (req, res) => {
+  try {
+    // Extract subdomain from request (either from Host header or query parameter)
+    let subdomain = null;
+    
+    // Try to extract from Host header first
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    if (host) {
+      const hostname = host.split(':')[0];
+      const parts = hostname.split('.');
+      
+      // Handle localhost subdomains (demo.localhost) and production subdomains (demo.example.com)
+      if (parts.length >= 2) {
+        const potentialSubdomain = parts[0];
+        const excludedSubdomains = ['www', 'api', 'admin', 'app', 'staging', 'dev', 'boom-booking-clean', 'boom-booking-clean-v1'];
+        
+        // For localhost, allow subdomains like demo.localhost
+        // For production, require at least 3 parts like demo.example.com
+        const isLocalhost = hostname.includes('localhost') || hostname.includes('127.0.0.1');
+        const isValidSubdomain = isLocalhost ? parts.length >= 2 : parts.length >= 3;
+        
+        if (isValidSubdomain && !excludedSubdomains.includes(potentialSubdomain.toLowerCase())) {
+          subdomain = potentialSubdomain.toLowerCase();
+        }
+      }
+    }
+    
+    // If no subdomain from Host header, check query parameter
+    if (!subdomain && req.query.subdomain) {
+      subdomain = req.query.subdomain.toLowerCase();
+    }
+    
+    if (!subdomain) {
+      return res.json({
+        success: true,
+        data: {
+          subdomain: null,
+          tenant: null,
+          isMainDomain: true,
+          message: 'Main domain - no subdomain detected'
+        }
+      });
+    }
+
+    console.log(`🔍 Detected subdomain: ${subdomain}`);
+
+    // Get tenant by subdomain
+    const tenantResult = await sql`
+      SELECT 
+        t.id, t.name, t.subdomain, t.domain, t.plan_type, t.status,
+        t.settings, t.created_at, t.updated_at
+      FROM tenants t
+      WHERE t.subdomain = ${subdomain} 
+        AND t.status = 'active'
+    `;
+
+    const tenant = tenantResult.length > 0 ? tenantResult[0] : null;
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tenant not found',
+        data: {
+          subdomain,
+          tenant: null,
+          isMainDomain: false,
+          isValid: false
+        }
+      });
+    }
+
+    console.log(`✅ Found tenant: ${tenant.name} (${tenant.subdomain})`);
+
+    // Return tenant information
+    res.json({
+      success: true,
+      data: {
+        subdomain,
+        tenant: {
+          id: tenant.id,
+          name: tenant.name,
+          subdomain: tenant.subdomain,
+          domain: tenant.domain,
+          planType: tenant.plan_type,
+          status: tenant.status,
+          settings: tenant.settings,
+          createdAt: tenant.created_at
+        },
+        isMainDomain: false,
+        isValid: true
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Subdomain router error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Subdomain service unavailable'
+    });
+  }
+});
+
+// Subdomain Detector API endpoint (alias for subdomain-router)
+app.get('/api/subdomain-detector', async (req, res) => {
+  try {
+    // Extract subdomain from request (either from Host header or query parameter)
+    let subdomain = null;
+    
+    // Try to extract from Host header first
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    if (host) {
+      const hostname = host.split(':')[0];
+      const parts = hostname.split('.');
+      
+      // Handle localhost subdomains (demo.localhost) and production subdomains (demo.example.com)
+      if (parts.length >= 2) {
+        const potentialSubdomain = parts[0];
+        const excludedSubdomains = ['www', 'api', 'admin', 'app', 'staging', 'dev', 'boom-booking-clean', 'boom-booking-clean-v1'];
+        
+        // For localhost, allow subdomains like demo.localhost
+        // For production, require at least 3 parts like demo.example.com
+        const isLocalhost = hostname.includes('localhost') || hostname.includes('127.0.0.1');
+        const isValidSubdomain = isLocalhost ? parts.length >= 2 : parts.length >= 3;
+        
+        if (isValidSubdomain && !excludedSubdomains.includes(potentialSubdomain.toLowerCase())) {
+          subdomain = potentialSubdomain.toLowerCase();
+        }
+      }
+    }
+    
+    // If no subdomain from Host header, check query parameter
+    if (!subdomain && req.query.subdomain) {
+      subdomain = req.query.subdomain.toLowerCase();
+    }
+    
+    if (!subdomain) {
+      return res.json({
+        success: true,
+        data: {
+          subdomain: null,
+          tenant: null,
+          isMainDomain: true,
+          message: 'Main domain - no subdomain detected'
+        }
+      });
+    }
+
+    console.log(`🔍 Detected subdomain: ${subdomain}`);
+
+    // Get tenant by subdomain
+    const tenantResult = await sql`
+      SELECT 
+        t.id, t.name, t.subdomain, t.domain, t.plan_type, t.status,
+        t.settings, t.created_at, t.updated_at
+      FROM tenants t
+      WHERE t.subdomain = ${subdomain} 
+        AND t.status = 'active'
+    `;
+
+    const tenant = tenantResult.length > 0 ? tenantResult[0] : null;
+
+    if (!tenant) {
+      return res.status(404).json({
+        success: false,
+        error: 'Tenant not found',
+        data: {
+          subdomain,
+          tenant: null,
+          isMainDomain: false,
+          isValid: false
+        }
+      });
+    }
+
+    console.log(`✅ Found tenant: ${tenant.name} (${tenant.subdomain})`);
+
+    // Return tenant information
+    res.json({
+      success: true,
+      data: {
+        subdomain,
+        tenant: {
+          id: tenant.id,
+          name: tenant.name,
+          subdomain: tenant.subdomain,
+          domain: tenant.domain,
+          planType: tenant.plan_type,
+          status: tenant.status,
+          settings: tenant.settings,
+          createdAt: tenant.created_at
+        },
+        isMainDomain: false,
+        isValid: true
+      }
+    });
+
+  } catch (error) {
+    console.error('❌ Subdomain detector error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? error.message : 'Subdomain service unavailable'
+    });
+  }
 });
 
 // Subdomain API endpoint

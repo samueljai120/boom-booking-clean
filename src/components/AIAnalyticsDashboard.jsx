@@ -18,7 +18,7 @@ const AIAnalyticsDashboard = () => {
       setLoading(true);
       const response = await fetch('/api/ai/insights', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${localStorage.getItem('authToken')}`
         }
       });
 

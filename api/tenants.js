@@ -157,7 +157,7 @@ async function createTenant(req, res) {
       )
       VALUES (
         ${name}, ${subdomain}, ${domain}, ${plan_type}, 'active', 
-        ${JSON.stringify(settings)}, 
+        ${settings}, 
         ${plan_type === 'free' ? null : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)}
       )
       RETURNING *

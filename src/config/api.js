@@ -1,6 +1,6 @@
 import { getApiBaseUrl } from '../utils/apiConfig';
 
-// API Configuration
+// API Configuration - Force refresh to clear cache - NUCLEAR REFRESH 2025-01-15 12:15:00
 export const API_CONFIG = {
   BASE_URL: getApiBaseUrl(),
   TIMEOUT: 10000,

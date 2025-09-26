@@ -11,7 +11,7 @@ export default defineConfig({
     jsxImportSource: 'react'
   })],
   server: {
-    port: 3001,
+    port: 3000,
     host: true,
     // No proxy configuration for standalone frontend
   },
@@ -51,10 +51,10 @@ export default defineConfig({
             return 'moment';
           }
           
-          // HTTP client
-          if (id.includes('axios')) {
-            return 'axios';
-          }
+          // HTTP client (removed axios - using fetch)
+          // if (id.includes('axios')) {
+          //   return 'axios';
+          // }
           
           // Query libraries
           if (id.includes('@tanstack/react-query')) {
@@ -121,6 +121,6 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
   },
   optimizeDeps: {
-    include: ['axios', 'react', 'react-dom']
+    include: ['react', 'react-dom']
   }
 })

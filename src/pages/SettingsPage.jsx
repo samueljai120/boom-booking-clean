@@ -1,17 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import EmailManager from '../components/EmailManager';
-import FeedbackSystem from '../components/FeedbackSystem';
-import CalendarIntegration from '../components/CalendarIntegration';
-import PushNotifications from '../components/PushNotifications';
-import SecurityPrivacy from '../components/SecurityPrivacy';
-import DatabaseManagement from '../components/DatabaseManagement';
-import ThirdPartyIntegrations from '../components/ThirdPartyIntegrations';
-import UserManagement from '../components/UserManagement';
-import AnalyticsReporting from '../components/AnalyticsReporting';
-import BillingSubscriptions from '../components/BillingSubscriptions';
-import ApiKeys from '../components/ApiKeys';
+import SubdomainManager from '../components/SubdomainManager';
 import { 
   Settings, 
   Mail, 
@@ -28,9 +18,16 @@ import {
 } from 'lucide-react';
 
 const SettingsPage = () => {
-  const [activeSection, setActiveSection] = useState('email');
+  const [activeSection, setActiveSection] = useState('subdomain');
 
   const settingsSections = [
+    {
+      id: 'subdomain',
+      title: 'Subdomain & Branding',
+      description: 'Manage your custom subdomain and branding',
+      icon: Globe,
+      component: SubdomainManager
+    },
     {
       id: 'email',
       title: 'Email Notifications',
