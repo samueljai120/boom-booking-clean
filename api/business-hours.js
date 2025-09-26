@@ -13,8 +13,8 @@ async function businessHoursHandler(req, res) {
     const tenant = req.tenant;
     const tenant_id = tenant ? tenant.id : req.query.tenant_id;
     
-    // If no tenant_id provided, return default business hours
-    if (!tenant_id) {
+    // If no tenant_id provided or tenant is null/invalid, return default business hours
+    if (!tenant_id || !tenant) {
       const defaultBusinessHours = [
         { day: 'monday', open: '09:00', close: '22:00', isOpen: true },
         { day: 'tuesday', open: '09:00', close: '22:00', isOpen: true },
