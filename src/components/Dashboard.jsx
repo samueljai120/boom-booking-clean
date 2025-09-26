@@ -4,20 +4,24 @@ import Header from './Header';
 import DatePicker from './DatePicker';
 import Scheduler from './Scheduler';
 import DigitalClock from './DigitalClock';
-// import { useWebSocket } from '../contexts/WebSocketContext'; // Disabled for Vercel deployment
+import { useWebSocket } from '../contexts/WebSocketContext';
 import { useQueryClient } from '@tanstack/react-query';
+import { useBookingRefresh, useRoomRefresh } from '../hooks/useSmartRefresh';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Badge } from './ui/Badge';
-import { Users, Clock, Calendar, Wifi, WifiOff } from 'lucide-react';
+import { Users, Clock, Calendar, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { roomsAPI, bookingsAPI } from '../lib/api';
 
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date(2025, 8, 17)); // September 17, 2025
   const [showSettings, setShowSettings] = useState(false);
-  // const { connected } = useWebSocket(); // Disabled for Vercel deployment
-  const connected = false; // Always false since WebSocket is disabled
+  const { connected, isVercelMode } = useWebSocket();
   const queryClient = useQueryClient();
+  
+  // Set up smart refresh for real-time feel
+  const { refreshData: refreshBookings, isPolling: isBookingPolling } = useBookingRefresh();
+  const { refreshData: refreshRooms, isPolling: isRoomPolling } = useRoomRefresh();
 
   // Test data fetching
   const { data: roomsData, isLoading: roomsLoading } = useQuery({
@@ -33,16 +37,23 @@ const Dashboard = () => {
   const rooms = roomsData?.data || [];
   const bookings = bookingsData?.data?.bookings || [];
 
-  // Real-time updates disabled for Vercel deployment
-  // useEffect(() => {
-  //   const unsubscribe = useWebSocket().subscribeToBookingChanges((data) => {
-  //     // Invalidate relevant queries to refetch data
-  //     queryClient.invalidateQueries({ queryKey: ['bookings'] });
-  //     queryClient.invalidateQueries({ queryKey: ['availability'] });
-  //   });
+  // Set up real-time updates (adapted for Vercel)
+  useEffect(() => {
+    const { subscribeToBookingChanges } = useWebSocket();
+    const unsubscribe = subscribeToBookingChanges((data) => {
+      // Invalidate relevant queries to refetch data
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['availability'] });
+    });
 
-  //   return unsubscribe;
-  // }, [queryClient]);
+    return unsubscribe;
+  }, [queryClient]);
+
+  // Manual refresh function for user-triggered updates
+  const handleManualRefresh = () => {
+    refreshBookings();
+    refreshRooms();
+  };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -87,7 +98,9 @@ const Dashboard = () => {
                 {connected ? (
                   <>
                     <Wifi className="w-4 h-4 text-green-500" />
-                    <span className="text-sm text-green-600">Connected</span>
+                    <span className="text-sm text-green-600">
+                      {isVercelMode ? 'API Connected (Polling)' : 'Real-time Connected'}
+                    </span>
                   </>
                 ) : (
                   <>
@@ -96,6 +109,21 @@ const Dashboard = () => {
                   </>
                 )}
               </div>
+              {isVercelMode && (
+                <div className="mt-2 flex items-center justify-between">
+                  <span className="text-xs text-gray-500">
+                    Updates refresh every 30 seconds
+                  </span>
+                  <button
+                    onClick={handleManualRefresh}
+                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center space-x-1"
+                    title="Refresh data now"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                    <span>Refresh</span>
+                  </button>
+                </div>
+              )}
             </CardContent>
           </Card>
 
