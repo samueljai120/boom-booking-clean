@@ -13,8 +13,15 @@ async function businessHoursHandler(req, res) {
     const tenant = req.tenant;
     const tenant_id = tenant ? tenant.id : req.query.tenant_id;
     
-    // If no tenant_id provided or tenant is null/invalid, return default business hours
-    if (!tenant_id || !tenant) {
+    // Check if this is the main domain (boom-booking-clean.vercel.app)
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    const isMainDomain = host && (
+      host.includes('boom-booking-clean.vercel.app') || 
+      host.includes('boom-booking-clean-v1.vercel.app')
+    );
+    
+    // If no tenant_id provided, tenant is null/invalid, OR this is the main domain, return default business hours
+    if (!tenant_id || !tenant || isMainDomain) {
       const defaultBusinessHours = [
         { day: 'monday', open: '09:00', close: '22:00', isOpen: true },
         { day: 'tuesday', open: '09:00', close: '22:00', isOpen: true },
@@ -30,7 +37,7 @@ async function businessHoursHandler(req, res) {
         data: {
           businessHours: defaultBusinessHours
         },
-        message: 'Default business hours (no tenant specified)'
+        message: isMainDomain ? 'Default business hours (main domain)' : 'Default business hours (no tenant specified)'
       });
     }
     
