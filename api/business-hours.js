@@ -26,11 +26,24 @@ async function businessHoursHandler(req, res) {
     const tenant = req.tenant;
     const tenant_id = tenant ? tenant.id : req.query.tenant_id;
     
-    // Validate tenant_id is provided
+    // If no tenant_id provided, return default business hours
     if (!tenant_id) {
-      return res.status(400).json({
-        success: false,
-        error: 'Tenant ID is required'
+      const defaultBusinessHours = [
+        { day: 'monday', open: '09:00', close: '22:00', isOpen: true },
+        { day: 'tuesday', open: '09:00', close: '22:00', isOpen: true },
+        { day: 'wednesday', open: '09:00', close: '22:00', isOpen: true },
+        { day: 'thursday', open: '09:00', close: '22:00', isOpen: true },
+        { day: 'friday', open: '09:00', close: '23:00', isOpen: true },
+        { day: 'saturday', open: '10:00', close: '23:00', isOpen: true },
+        { day: 'sunday', open: '10:00', close: '21:00', isOpen: true }
+      ];
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          businessHours: defaultBusinessHours
+        },
+        message: 'Default business hours (no tenant specified)'
       });
     }
     

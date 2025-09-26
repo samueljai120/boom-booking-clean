@@ -68,12 +68,10 @@ async function getSubdomainInfo(req, res) {
     const tenantResult = await sql`
       SELECT 
         t.id, t.name, t.subdomain, t.domain, t.plan_type, t.status,
-        t.settings, t.stripe_customer_id, t.subscription_id, t.subscription_status,
-        t.trial_ends_at, t.created_at, t.updated_at
+        t.settings, t.created_at, t.updated_at
       FROM tenants t
       WHERE t.subdomain = ${subdomain} 
-        AND t.status = 'active' 
-        AND t.deleted_at IS NULL
+        AND t.status = 'active'
     `;
 
     const tenant = tenantResult.length > 0 ? tenantResult[0] : null;
@@ -90,8 +88,6 @@ async function getSubdomainInfo(req, res) {
           planType: tenant.plan_type,
           status: tenant.status,
           settings: tenant.settings,
-          subscriptionStatus: tenant.subscription_status,
-          trialEndsAt: tenant.trial_ends_at,
           createdAt: tenant.created_at
         } : null,
         isMainDomain: false,
