@@ -4,7 +4,7 @@ import Header from './Header';
 import DatePicker from './DatePicker';
 import Scheduler from './Scheduler';
 import DigitalClock from './DigitalClock';
-import { useWebSocket } from '../contexts/WebSocketContext';
+// import { useWebSocket } from '../contexts/WebSocketContext'; // Disabled for Vercel deployment
 import { useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Badge } from './ui/Badge';
@@ -15,7 +15,8 @@ import { roomsAPI, bookingsAPI } from '../lib/api';
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date(2025, 8, 17)); // September 17, 2025
   const [showSettings, setShowSettings] = useState(false);
-  const { connected } = useWebSocket();
+  // const { connected } = useWebSocket(); // Disabled for Vercel deployment
+  const connected = false; // Always false since WebSocket is disabled
   const queryClient = useQueryClient();
 
   // Test data fetching
@@ -32,16 +33,16 @@ const Dashboard = () => {
   const rooms = roomsData?.data || [];
   const bookings = bookingsData?.data?.bookings || [];
 
-  // Set up real-time updates
-  useEffect(() => {
-    const unsubscribe = useWebSocket().subscribeToBookingChanges((data) => {
-      // Invalidate relevant queries to refetch data
-      queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      queryClient.invalidateQueries({ queryKey: ['availability'] });
-    });
+  // Real-time updates disabled for Vercel deployment
+  // useEffect(() => {
+  //   const unsubscribe = useWebSocket().subscribeToBookingChanges((data) => {
+  //     // Invalidate relevant queries to refetch data
+  //     queryClient.invalidateQueries({ queryKey: ['bookings'] });
+  //     queryClient.invalidateQueries({ queryKey: ['availability'] });
+  //   });
 
-    return unsubscribe;
-  }, [queryClient]);
+  //   return unsubscribe;
+  // }, [queryClient]);
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
