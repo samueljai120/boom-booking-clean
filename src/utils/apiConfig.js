@@ -2,7 +2,12 @@
 export const getApiBaseUrl = () => {
   // Check for production backend URL first
   if (import.meta.env.VITE_API_BASE_URL) {
-    return import.meta.env.VITE_API_BASE_URL;
+    const url = import.meta.env.VITE_API_BASE_URL;
+    // If it's a full URL, use it; if it's relative, use it; if it's the old URL, use relative
+    if (url.includes('boom-booking-clean-v1.vercel.app')) {
+      return '/api';
+    }
+    return url;
   }
   
   // Check if we're in production (Vercel deployment)
