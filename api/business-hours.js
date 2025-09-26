@@ -4,6 +4,10 @@ import { withTenantContext } from '../lib/subdomain-middleware.js';
 
 async function businessHoursHandler(req, res) {
   // CORS headers are handled by vercel.json configuration
+  // Add cache-busting headers
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
 
   try {
     // Initialize database if needed
