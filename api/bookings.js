@@ -57,11 +57,29 @@ async function getBookings(req, res) {
     const tenant = req.tenant;
     const tenant_id = tenant ? tenant.id : req.query.tenant_id;
     
-    // Validate tenant_id is provided
-    if (!tenant_id) {
+    // Check if this is the main domain (boom-booking-clean.vercel.app)
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    const isMainDomain = host && (
+      host.includes('boom-booking-clean.vercel.app') || 
+      host.includes('boom-booking-clean-v1.vercel.app')
+    );
+    
+    // Validate tenant_id is provided (unless this is the main domain)
+    if (!tenant_id && !isMainDomain) {
       return res.status(400).json({
         success: false,
         error: 'Tenant ID is required'
+      });
+    }
+    
+    // For main domain, return empty bookings array
+    if (isMainDomain && !tenant_id) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          bookings: []
+        },
+        message: 'Default bookings (main domain)'
       });
     }
     
@@ -148,12 +166,27 @@ async function createBooking(req, res) {
     // Get tenant from middleware (either from subdomain or body)
     const tenant = req.tenant;
     const tenant_id = tenant ? tenant.id : req.body.tenant_id;
+    
+    // Check if this is the main domain (boom-booking-clean.vercel.app)
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    const isMainDomain = host && (
+      host.includes('boom-booking-clean.vercel.app') || 
+      host.includes('boom-booking-clean-v1.vercel.app')
+    );
 
-    // Validate required fields
-    if (!tenant_id || !room_id || !customer_name || !start_time || !end_time) {
+    // Validate required fields (unless this is the main domain)
+    if ((!tenant_id && !isMainDomain) || !room_id || !customer_name || !start_time || !end_time) {
       return res.status(400).json({
         success: false,
         error: 'Missing required fields (tenant_id, room_id, customer_name, start_time, end_time)'
+      });
+    }
+    
+    // For main domain, return error as bookings require tenant context
+    if (isMainDomain && !tenant_id) {
+      return res.status(400).json({
+        success: false,
+        error: 'Bookings require tenant context. Please specify tenant_id.'
       });
     }
 

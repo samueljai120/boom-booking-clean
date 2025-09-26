@@ -46,11 +46,39 @@ export default async function handler(req, res) {
 async function getUsageStats(req, res) {
   try {
     const { tenant_id, period = 'current_month' } = req.query;
+    
+    // Check if this is the main domain (boom-booking-clean.vercel.app)
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    const isMainDomain = host && (
+      host.includes('boom-booking-clean.vercel.app') || 
+      host.includes('boom-booking-clean-v1.vercel.app')
+    );
 
-    if (!tenant_id) {
+    if (!tenant_id && !isMainDomain) {
       return res.status(400).json({
         success: false,
         error: 'Tenant ID is required'
+      });
+    }
+    
+    // For main domain, return default usage stats
+    if (isMainDomain && !tenant_id) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          usage: {
+            bookings_count: 0,
+            total_hours: 0,
+            total_revenue: 0,
+            period: period
+          },
+          limits: {
+            max_bookings: 100,
+            max_hours: 1000,
+            max_revenue: 10000
+          }
+        },
+        message: 'Default usage stats (main domain)'
       });
     }
 
@@ -156,11 +184,32 @@ async function getUsageStats(req, res) {
 async function checkUsageLimits(req, res) {
   try {
     const { tenant_id, resource_type, resource_count = 1 } = req.body;
+    
+    // Check if this is the main domain (boom-booking-clean.vercel.app)
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    const isMainDomain = host && (
+      host.includes('boom-booking-clean.vercel.app') || 
+      host.includes('boom-booking-clean-v1.vercel.app')
+    );
 
-    if (!tenant_id || !resource_type) {
+    if ((!tenant_id && !isMainDomain) || !resource_type) {
       return res.status(400).json({
         success: false,
         error: 'Tenant ID and resource type are required'
+      });
+    }
+    
+    // For main domain, return default usage limits check
+    if (isMainDomain && !tenant_id) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          withinLimits: true,
+          currentUsage: 0,
+          limit: 1000,
+          resourceType: resource_type
+        },
+        message: 'Default usage limits check (main domain)'
       });
     }
 

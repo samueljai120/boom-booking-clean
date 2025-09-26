@@ -26,11 +26,29 @@ async function roomsHandler(req, res) {
     const tenant = req.tenant;
     const tenantId = tenant ? tenant.id : req.query.tenant_id;
     
-    // Validate tenant_id is provided
-    if (!tenantId) {
+    // Check if this is the main domain (boom-booking-clean.vercel.app)
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    const isMainDomain = host && (
+      host.includes('boom-booking-clean.vercel.app') || 
+      host.includes('boom-booking-clean-v1.vercel.app')
+    );
+    
+    // Validate tenant_id is provided (unless this is the main domain)
+    if (!tenantId && !isMainDomain) {
       return res.status(400).json({
         success: false,
         error: 'Tenant ID is required'
+      });
+    }
+    
+    // For main domain, return default rooms or empty array
+    if (isMainDomain && !tenantId) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          rooms: []
+        },
+        message: 'Default rooms (main domain)'
       });
     }
     
