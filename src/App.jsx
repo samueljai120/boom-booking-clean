@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 // import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -9,39 +9,48 @@ import { WebSocketProvider } from './contexts/WebSocketContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { BusinessHoursProvider } from './contexts/BusinessHoursContext';
 import { BusinessInfoProvider } from './contexts/BusinessInfoContext';
-import AppleCalendarDashboard from './components/AppleCalendarDashboard';
-import PricingPage from './pages/PricingPage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
-import SettingsPage from './pages/SettingsPage';
-import TenantManagement from './pages/TenantManagement';
-import AIAnalyticsDashboard from './components/AIAnalyticsDashboard';
-import AboutPage from './pages/AboutPage';
-import ContactPage from './pages/ContactPage';
-import BlogPage from './pages/BlogPage';
-import HelpCenterPage from './pages/HelpCenterPage';
-import StatusPage from './pages/StatusPage';
-import APIPage from './pages/APIPage';
-import CareersPage from './pages/CareersPage';
-import SupportPage from './pages/SupportPage';
-import DocumentationPage from './pages/DocumentationPage';
-import PrivacyPage from './pages/PrivacyPage';
-import AdminDashboard from './pages/AdminDashboard';
-import AdminTenantManagement from './pages/AdminTenantManagement';
-import AdminUserManagement from './pages/AdminUserManagement';
-import AdminFormManagement from './pages/AdminFormManagement';
-import AdminAnalytics from './pages/AdminAnalytics';
-import AdminBilling from './pages/AdminBilling';
-import AdminSystemSettings from './pages/AdminSystemSettings';
-import ApiTest from './components/ApiTest';
-import AuthTest from './components/AuthTest';
-import LoginTest from './components/LoginTest';
-import SubdomainAccess from './components/SubdomainAccess';
-import SubdomainUrlHandler from './components/SubdomainUrlHandler';
 import ScrollToTop from './components/ScrollToTop';
 import ScrollToTopButton from './components/ScrollToTopButton';
+
+// Lazy load non-critical components
+const AppleCalendarDashboard = React.lazy(() => import('./components/AppleCalendarDashboard'));
+const PricingPage = React.lazy(() => import('./pages/PricingPage'));
+const SettingsPage = React.lazy(() => import('./pages/SettingsPage'));
+const TenantManagement = React.lazy(() => import('./pages/TenantManagement'));
+const AIAnalyticsDashboard = React.lazy(() => import('./components/AIAnalyticsDashboard'));
+const AboutPage = React.lazy(() => import('./pages/AboutPage'));
+const ContactPage = React.lazy(() => import('./pages/ContactPage'));
+const BlogPage = React.lazy(() => import('./pages/BlogPage'));
+const HelpCenterPage = React.lazy(() => import('./pages/HelpCenterPage'));
+const StatusPage = React.lazy(() => import('./pages/StatusPage'));
+const APIPage = React.lazy(() => import('./pages/APIPage'));
+const CareersPage = React.lazy(() => import('./pages/CareersPage'));
+const SupportPage = React.lazy(() => import('./pages/SupportPage'));
+const DocumentationPage = React.lazy(() => import('./pages/DocumentationPage'));
+const PrivacyPage = React.lazy(() => import('./pages/PrivacyPage'));
+const AdminDashboard = React.lazy(() => import('./pages/AdminDashboard'));
+const AdminTenantManagement = React.lazy(() => import('./pages/AdminTenantManagement'));
+const AdminUserManagement = React.lazy(() => import('./pages/AdminUserManagement'));
+const AdminFormManagement = React.lazy(() => import('./pages/AdminFormManagement'));
+const AdminAnalytics = React.lazy(() => import('./pages/AdminAnalytics'));
+const AdminBilling = React.lazy(() => import('./pages/AdminBilling'));
+const AdminSystemSettings = React.lazy(() => import('./pages/AdminSystemSettings'));
+const ApiTest = React.lazy(() => import('./components/ApiTest'));
+const AuthTest = React.lazy(() => import('./components/AuthTest'));
+const LoginTest = React.lazy(() => import('./components/LoginTest'));
+const SubdomainAccess = React.lazy(() => import('./components/SubdomainAccess'));
+const SubdomainUrlHandler = React.lazy(() => import('./components/SubdomainUrlHandler'));
+
+// Loading component
+const LoadingSpinner = () => (
+  <div className="min-h-screen flex items-center justify-center">
+    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+  </div>
+);
 import './index.css';
 
 // Error Boundary Component
@@ -142,53 +151,149 @@ const AppContent = () => {
                 <Routes>
         {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/pricing" element={<PricingPage />} />
+        <Route path="/pricing" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <PricingPage />
+          </Suspense>
+        } />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/about" element={<AboutPage />} />
-        <Route path="/contact" element={<ContactPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/help" element={<HelpCenterPage />} />
-        <Route path="/docs" element={<DocumentationPage />} />
-        <Route path="/status" element={<StatusPage />} />
-        <Route path="/api" element={<APIPage />} />
-        <Route path="/careers" element={<CareersPage />} />
-        <Route path="/support" element={<SupportPage />} />
-        <Route path="/privacy" element={<PrivacyPage />} />
-        <Route path="/api-test" element={<ApiTest />} />
-        <Route path="/auth-test" element={<AuthTest />} />
-        <Route path="/login-test" element={<LoginTest />} />
-        <Route path="/venue" element={<SubdomainAccess />} />
+        <Route path="/about" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AboutPage />
+          </Suspense>
+        } />
+        <Route path="/contact" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <ContactPage />
+          </Suspense>
+        } />
+        <Route path="/blog" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <BlogPage />
+          </Suspense>
+        } />
+        <Route path="/help" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <HelpCenterPage />
+          </Suspense>
+        } />
+        <Route path="/docs" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <DocumentationPage />
+          </Suspense>
+        } />
+        <Route path="/status" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <StatusPage />
+          </Suspense>
+        } />
+        <Route path="/api" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <APIPage />
+          </Suspense>
+        } />
+        <Route path="/careers" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <CareersPage />
+          </Suspense>
+        } />
+        <Route path="/support" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <SupportPage />
+          </Suspense>
+        } />
+        <Route path="/privacy" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <PrivacyPage />
+          </Suspense>
+        } />
+        <Route path="/api-test" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <ApiTest />
+          </Suspense>
+        } />
+        <Route path="/auth-test" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AuthTest />
+          </Suspense>
+        } />
+        <Route path="/login-test" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <LoginTest />
+          </Suspense>
+        } />
+        <Route path="/venue" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <SubdomainAccess />
+          </Suspense>
+        } />
         
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/tenants" element={<AdminTenantManagement />} />
-        <Route path="/admin/users" element={<AdminUserManagement />} />
-        <Route path="/admin/forms" element={<AdminFormManagement />} />
-        <Route path="/admin/analytics" element={<AdminAnalytics />} />
-        <Route path="/admin/billing" element={<AdminBilling />} />
-        <Route path="/admin/system" element={<AdminSystemSettings />} />
+        <Route path="/admin" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminDashboard />
+          </Suspense>
+        } />
+        <Route path="/admin/tenants" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminTenantManagement />
+          </Suspense>
+        } />
+        <Route path="/admin/users" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminUserManagement />
+          </Suspense>
+        } />
+        <Route path="/admin/forms" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminFormManagement />
+          </Suspense>
+        } />
+        <Route path="/admin/analytics" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminAnalytics />
+          </Suspense>
+        } />
+        <Route path="/admin/billing" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminBilling />
+          </Suspense>
+        } />
+        <Route path="/admin/system" element={
+          <Suspense fallback={<LoadingSpinner />}>
+            <AdminSystemSettings />
+          </Suspense>
+        } />
         
         {/* Protected Routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
-            <AppleCalendarDashboard />
+            <Suspense fallback={<LoadingSpinner />}>
+              <AppleCalendarDashboard />
+            </Suspense>
           </ProtectedRoute>
         } />
         <Route path="/ai-analytics" element={
           <ProtectedRoute>
-            <AIAnalyticsDashboard />
+            <Suspense fallback={<LoadingSpinner />}>
+              <AIAnalyticsDashboard />
+            </Suspense>
           </ProtectedRoute>
         } />
         <Route path="/settings" element={
           <ProtectedRoute>
-            <SettingsPage />
+            <Suspense fallback={<LoadingSpinner />}>
+              <SettingsPage />
+            </Suspense>
           </ProtectedRoute>
         } />
         <Route path="/tenants" element={
           <ProtectedRoute>
-            <TenantManagement />
+            <Suspense fallback={<LoadingSpinner />}>
+              <TenantManagement />
+            </Suspense>
           </ProtectedRoute>
         } />
                   </Routes>

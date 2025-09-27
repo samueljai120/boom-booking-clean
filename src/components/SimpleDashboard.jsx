@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import moment from 'moment';
+import { format } from 'date-fns';
+import moment from 'moment-timezone';
 import Header from './Header';
 import DigitalClock from './DigitalClock';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';

@@ -173,7 +173,40 @@ async function updateBusinessHours(req, res) {
     const tenant = req.tenant;
     const tenant_id = tenant ? tenant.id : req.query.tenant_id;
     
-    if (!tenant_id) {
+    // Check if this is the main domain or localhost development
+    const host = req.headers.host || req.headers['x-forwarded-host'];
+    const isMainDomain = host && (
+      host.includes('boom-booking-clean.vercel.app') || 
+      host.includes('boom-booking-clean-v1.vercel.app')
+    );
+    const isLocalhost = host && (
+      host.includes('localhost') || 
+      host.includes('127.0.0.1') ||
+      host.includes('0.0.0.0')
+    );
+    
+    // For development/localhost, use a default tenant ID
+    let effectiveTenantId = tenant_id;
+    if (!tenant_id && (isMainDomain || isLocalhost)) {
+      // Get the default tenant ID from database
+      const defaultTenant = await sql`
+        SELECT id FROM tenants 
+        WHERE subdomain = 'demo' 
+        LIMIT 1
+      `;
+      
+      if (defaultTenant.length > 0) {
+        effectiveTenantId = defaultTenant[0].id;
+        console.log('🔧 Development mode: Using default tenant ID for business hours:', effectiveTenantId);
+      } else {
+        return res.status(400).json({
+          success: false,
+          error: 'No default tenant found for development'
+        });
+      }
+    }
+    
+    if (!effectiveTenantId) {
       return res.status(400).json({
         success: false,
         error: 'Tenant ID is required'
@@ -183,10 +216,22 @@ async function updateBusinessHours(req, res) {
     const { hours, businessHours } = req.body;
     const hoursData = hours || businessHours;
     
+    console.log('Business hours update request:', {
+      tenant_id,
+      body: req.body,
+      hoursData
+    });
+    
     if (!hoursData || !Array.isArray(hoursData)) {
+      console.error('Invalid business hours data:', { hoursData, type: typeof hoursData });
       return res.status(400).json({
         success: false,
-        error: 'Business hours data is required'
+        error: 'Business hours data is required and must be an array',
+        received: {
+          type: typeof hoursData,
+          isArray: Array.isArray(hoursData),
+          value: hoursData
+        }
       });
     }
 
@@ -196,7 +241,7 @@ async function updateBusinessHours(req, res) {
     // Delete existing business hours for this tenant (using UUID)
     await sql`
       DELETE FROM business_hours 
-      WHERE tenant_id = ${tenant_id}
+      WHERE tenant_id = ${effectiveTenantId}
     `;
 
     // Insert new business hours
@@ -218,7 +263,7 @@ async function updateBusinessHours(req, res) {
         
         await sql`
           INSERT INTO business_hours (tenant_id, day_of_week, open_time, close_time, is_closed)
-          VALUES (${tenant_id}, ${dayOfWeek}, ${openTime}, ${closeTime}, ${isClosed})
+          VALUES (${effectiveTenantId}, ${dayOfWeek}, ${openTime}, ${closeTime}, ${isClosed})
         `;
       }
     }
@@ -227,7 +272,7 @@ async function updateBusinessHours(req, res) {
     const result = await sql`
       SELECT id, tenant_id, day_of_week, open_time, close_time, is_closed
       FROM business_hours
-      WHERE tenant_id = ${tenant_id}
+      WHERE tenant_id = ${effectiveTenantId}
       ORDER BY day_of_week
     `;
 

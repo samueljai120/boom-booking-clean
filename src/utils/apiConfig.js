@@ -3,6 +3,7 @@ export const getApiBaseUrl = () => {
   // Check for production backend URL first
   if (import.meta.env.VITE_API_BASE_URL) {
     const url = import.meta.env.VITE_API_BASE_URL;
+    console.log('🔧 Using VITE_API_BASE_URL:', url);
     // If it's a full URL, use it; if it's relative, use it; if it's the old URL, use relative
     if (url.includes('boom-booking-clean-v1.vercel.app')) {
       return '/api';
@@ -13,11 +14,14 @@ export const getApiBaseUrl = () => {
   // Check if we're in production (Vercel deployment)
   if (import.meta.env.PROD) {
     // Use Vercel API routes (same domain) - Force relative URL
+    console.log('🔧 Production mode: Using relative /api');
     return '/api';
   }
   
-  // Development fallback - Express server on port 3000
-  // Force refresh to clear browser cache - ${Date.now()}
+  // Development fallback - Use port 3000 for Express API
+  console.log('🔧 Development mode: Using port 3000 for Express API');
+  
+  // Use port 3000 for Express server
   return 'http://localhost:3000/api';
 };
 
@@ -32,5 +36,5 @@ export const getWebSocketUrl = () => {
     return '';
   }
   
-  return 'http://localhost:3001';
+  return 'http://localhost:3000';
 };

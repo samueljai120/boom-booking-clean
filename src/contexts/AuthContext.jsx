@@ -39,8 +39,10 @@ export const AuthProvider = ({ children }) => {
           
           if (response.success) {
             setUser(response.user);
+            console.log('✅ Session validated, user loaded:', response.user?.email);
           } else {
             // Session invalid, clear auth
+            console.log('❌ Session invalid, clearing auth data');
             localStorage.removeItem('authToken');
             localStorage.removeItem('user');
             setToken(null);
@@ -50,7 +52,33 @@ export const AuthProvider = ({ children }) => {
           console.error('Session check failed:', error);
           // For demo purposes, don't clear auth on network errors
           // Just set loading to false so the app can continue
-          console.log('Using mock mode due to network error');
+          console.log('🔄 Using mock mode due to network error');
+          
+          // Try to restore user from localStorage if available
+          const savedUser = localStorage.getItem('user');
+          if (savedUser) {
+            try {
+              const parsedUser = JSON.parse(savedUser);
+              setUser(parsedUser);
+              console.log('🔄 Restored user from localStorage:', parsedUser?.email);
+            } catch (parseError) {
+              console.error('Failed to parse saved user:', parseError);
+              localStorage.removeItem('user');
+            }
+          }
+        }
+      } else {
+        // No token, check if user data exists in localStorage
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) {
+          try {
+            const parsedUser = JSON.parse(savedUser);
+            console.log('🔄 No token but found user in localStorage, clearing...');
+            localStorage.removeItem('user');
+          } catch (parseError) {
+            console.error('Failed to parse saved user:', parseError);
+            localStorage.removeItem('user');
+          }
         }
       }
       setLoading(false);
@@ -77,8 +105,36 @@ export const AuthProvider = ({ children }) => {
         console.log('🏢 User tenant_id:', user?.tenant_id);
         console.log('📋 Full response structure:', response);
         
-        localStorage.setItem('authToken', token);
-        localStorage.setItem('user', JSON.stringify(user));
+        // Validate token and user before storing
+        if (!token) {
+          console.error('❌ No token received from login response');
+          return {
+            success: false,
+            error: 'No authentication token received'
+          };
+        }
+        
+        if (!user) {
+          console.error('❌ No user data received from login response');
+          return {
+            success: false,
+            error: 'No user data received'
+          };
+        }
+        
+        // Store in localStorage with error handling
+        try {
+          localStorage.setItem('authToken', token);
+          localStorage.setItem('user', JSON.stringify(user));
+        } catch (storageError) {
+          console.error('❌ Failed to store auth data in localStorage:', storageError);
+          return {
+            success: false,
+            error: 'Failed to store authentication data'
+          };
+        }
+        
+        // Update state
         setToken(token);
         setUser(user);
         

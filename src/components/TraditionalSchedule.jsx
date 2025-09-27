@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useSettings } from '../contexts/SettingsContext';
 import { useBusinessHours } from '../contexts/BusinessHoursContext';
 import { useTenant } from '../contexts/TenantContext';
+import { format, parseISO, addDays, subDays, startOfDay, endOfDay, isSameDay, isAfter, isBefore } from 'date-fns';
 import moment from 'moment-timezone';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { roomsAPI, bookingsAPI } from '../lib/api';
@@ -494,6 +495,9 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeId, setActiveId] = useState(null);
   const [draggedBooking, setDraggedBooking] = useState(null);
+  const [dragTargetDate, setDragTargetDate] = useState(null); // Track the target date during drag
+  const [dateLocked, setDateLocked] = useState(false); // Track if date is locked
+  const [lockTimer, setLockTimer] = useState(null); // Timer for date locking
   const [showInstructions, setShowInstructions] = useState(false);
   const [showAnalytics, setShowAnalytics] = useState(false);
   const [showCustomerBase, setShowCustomerBase] = useState(false);
@@ -826,15 +830,35 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
   });
 
   const normalizedBookings = useMemo(() => {
-    const mapped = bookings.map(b => ({
-      ...b,
-      roomId: b.roomId || b.room,
-      room: b.room || b.roomId,
-      startTime: b.startTime || b.timeIn,
-      endTime: b.endTime || b.timeOut,
-      timeIn: b.timeIn || b.startTime,
-      timeOut: b.timeOut || b.endTime,
-    }));
+    const mapped = bookings.map(b => {
+      // Enhanced roomId normalization to handle all possible data structures
+      let normalizedRoomId;
+      
+      if (typeof b.roomId === 'object' && b.roomId !== null) {
+        // roomId is an object (API response structure)
+        normalizedRoomId = b.roomId._id || b.roomId.id;
+      } else if (b.room && typeof b.room === 'object') {
+        // room is an object (API response structure)
+        normalizedRoomId = b.room._id || b.room.id;
+      } else if (b.roomId) {
+        // roomId is already a primitive
+        normalizedRoomId = b.roomId;
+      } else {
+        // Fallback - try to extract from any available structure
+        normalizedRoomId = b.room?._id || b.room?.id || b.roomId?._id || b.roomId?.id || b.roomId;
+      }
+      
+      return {
+        ...b,
+        // Normalize roomId to always be a primitive value for consistent matching
+        roomId: normalizedRoomId,
+        room: b.room || b.roomId,
+        startTime: b.startTime || b.timeIn,
+        endTime: b.endTime || b.timeOut,
+        timeIn: b.timeIn || b.startTime,
+        timeOut: b.timeOut || b.endTime,
+      };
+    });
 
     // Filter bookings that overlap with the selected date
     const selectedStart = moment(selectedDate).startOf('day');
@@ -1062,16 +1086,18 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
     // Calculate optimal width based on available space
     const optimalWidth = availableWidth / timeSlotsCount;
     
-    // For tiny/small settings, allow more compression
-    const compressionThreshold = settings.horizontalLayoutSlots?.slotWidth === 'tiny' ? 0.6 : 
-                                 settings.horizontalLayoutSlots?.slotWidth === 'small' ? 0.7 : 0.8;
+    // For tiny/small settings, allow more compression but ensure minimum readability
+    const compressionThreshold = settings.horizontalLayoutSlots?.slotWidth === 'tiny' ? 0.5 : 
+                                 settings.horizontalLayoutSlots?.slotWidth === 'small' ? 0.6 : 0.7;
     
     const finalWidth = Math.max(
       minWidth, 
       Math.round(optimalWidth * compressionThreshold)
     );
     
-    return finalWidth;
+    // Ensure minimum width for time label readability
+    const minReadableWidth = 20; // Minimum width to display time labels (reduced for dot design)
+    return Math.max(finalWidth, minReadableWidth);
   };
   const getResponsiveSlotHeight = () => {
     // If custom height is set, use it directly (respect user's choice)
@@ -1105,6 +1131,24 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
     return finalHeight;
   };
 
+  // Calculate total grid height to ensure proper container sizing
+  const getTotalGridHeight = () => {
+    const roomsCount = rooms.length;
+    const timeSlotsCount = timeSlots.length;
+    
+    if (roomsCount === 0 || timeSlotsCount === 0) {
+      return 0;
+    }
+    
+    // Calculate total height needed for all room rows
+    const totalHeight = roomsCount * SLOT_HEIGHT;
+    
+    // Ensure minimum height for visibility
+    const minTotalHeight = Math.max(200, totalHeight);
+    
+    return minTotalHeight;
+  };
+
   const SLOT_WIDTH = getResponsiveSlotWidth();
   const SLOT_HEIGHT = getResponsiveSlotHeight();
   
@@ -1121,20 +1165,26 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
       const roomId = room._id || room.id;
       grouped[roomId] = normalizedBookings
         .filter(booking => {
-          // Improved room matching logic - handle both object and ID cases
-          let bookingRoomId;
-          if (typeof booking.roomId === 'object' && booking.roomId !== null) {
-            // roomId is an object, get the _id or id
-            bookingRoomId = booking.roomId._id || booking.roomId.id;
-          } else if (typeof booking.room === 'object' && booking.room !== null) {
-            // room is an object, get the _id or id
-            bookingRoomId = booking.room._id || booking.room.id;
-          } else {
-            // roomId or room is a primitive value
-            bookingRoomId = booking.roomId || booking.room;
-          }
+          // Simplified room matching logic - roomId is now always normalized to primitive
+          const bookingRoomId = booking.roomId;
+          // Handle both API and mock data structures - API has only 'id', mock has both '_id' and 'id'
           
-          const roomMatch = bookingRoomId === roomId;
+          // Debug room matching - catch all bookings
+          console.log('🔍 TRADITIONAL ALL BOOKINGS DEBUG:', {
+            bookingName: booking.customerName || booking.title || 'No name',
+            bookingRoomId,
+            bookingRoomIdType: typeof bookingRoomId,
+            roomId,
+            roomIdType: typeof roomId,
+            roomMatch: bookingRoomId == roomId,
+            roomName: room.name,
+            originalBookingData: booking,
+            normalizedRoomId: booking.roomId
+          });
+          
+          // Use strict equality since both are now primitive values
+          // Convert both to strings for consistent comparison
+          const roomMatch = String(bookingRoomId) === String(roomId);
           const statusMatch = booking.status !== 'cancelled' && booking.status !== 'no_show';
           
           return roomMatch && statusMatch;
@@ -1340,20 +1390,151 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
     const booking = normalizedBookings.find(b => b._id === active.id);
     setActiveId(active.id);
     setDraggedBooking(booking);
+    setDragTargetDate(null); // Reset target date on new drag
+    setDateLocked(false); // Reset date lock on new drag
+    if (lockTimer) {
+      clearTimeout(lockTimer);
+      setLockTimer(null);
+    }
+  };
+
+  // Handle drag over mini calendar days to change date
+  const handleDragOver = (event) => {
+    const { active, over } = event;
+    
+    // Check if dragging over a mini calendar day
+    if (over && over.id && over.id.startsWith('mini-calendar-day-')) {
+      // If date is locked, don't change it
+      if (dateLocked) {
+        return;
+      }
+      
+      const dayIndex = parseInt(over.id.replace('mini-calendar-day-', ''));
+      
+      // Generate calendar days array (same logic as in render)
+      const startOfMonth = moment(calendarBaseDate).startOf('month');
+      const endOfMonth = moment(calendarBaseDate).endOf('month');
+      const startOfCalendar = startOfMonth.clone().startOf('week');
+      const endOfCalendar = endOfMonth.clone().endOf('week');
+      const days = [];
+      const cur = startOfCalendar.clone();
+      while (cur.isSameOrBefore(endOfCalendar, 'day')) {
+        days.push(cur.clone());
+        cur.add(1, 'day');
+      }
+      
+      const targetDay = days[dayIndex];
+      
+      if (targetDay && !targetDay.isSame(selectedDate, 'day')) {
+        // Clear any existing timer
+        if (lockTimer) {
+          clearTimeout(lockTimer);
+        }
+        
+        // Set new target date
+        setDragTargetDate(targetDay.toDate());
+        
+        // Change the selected date to the hovered day with smooth transition
+        onDateChange(targetDay.toDate());
+        setCalendarBaseDate(targetDay.toDate());
+        
+        // Start 2-second timer to lock the date
+        const timer = setTimeout(() => {
+          setDateLocked(true);
+          console.log('Date locked after 2 seconds');
+        }, 2000);
+        setLockTimer(timer);
+        console.log('Started 2-second lock timer for date:', targetDay.format('MMM D'));
+        
+        // Add visual feedback for date change
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('date-changed-during-drag', {
+            detail: { 
+              newDate: targetDay.toDate(),
+              draggedBooking: draggedBooking 
+            }
+          }));
+        }
+      }
+    } else {
+      // Not hovering over mini calendar - reset lock timer and unlock date
+      if (lockTimer) {
+        clearTimeout(lockTimer);
+        setLockTimer(null);
+      }
+      if (dateLocked) {
+        setDateLocked(false);
+        console.log('Date unlocked - left mini calendar');
+      }
+    }
   };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveId(null);
     setDraggedBooking(null);
+    setDragTargetDate(null); // Reset target date on drag end
+    // Don't reset dateLocked here - let it persist until next drag
+    if (lockTimer) {
+      clearTimeout(lockTimer);
+      setLockTimer(null);
+    }
 
     if (!over) {
+      // Dropped outside - return booking to original position
       // Exit edit mode when drag is cancelled (dropped outside valid area)
       window.dispatchEvent(new CustomEvent('exit-edit-mode'));
       return;
     }
 
     const overId = String(over.id);
+    
+    // Check if dropped on mini calendar day
+    if (overId.startsWith('mini-calendar-day-')) {
+      const dayIndex = parseInt(overId.replace('mini-calendar-day-', ''));
+      
+      // Generate calendar days array (same logic as in render)
+      const startOfMonth = moment(calendarBaseDate).startOf('month');
+      const endOfMonth = moment(calendarBaseDate).endOf('month');
+      const startOfCalendar = startOfMonth.clone().startOf('week');
+      const endOfCalendar = endOfMonth.clone().endOf('week');
+      const days = [];
+      const cur = startOfCalendar.clone();
+      while (cur.isSameOrBefore(endOfCalendar, 'day')) {
+        days.push(cur.clone());
+        cur.add(1, 'day');
+      }
+      
+      const targetDay = days[dayIndex];
+      
+      if (targetDay && draggedBooking) {
+        // Move booking to the new date (same time, new date)
+        const originalStartTime = moment(draggedBooking.timeIn || draggedBooking.startTime);
+        const originalEndTime = moment(draggedBooking.timeOut || draggedBooking.endTime);
+        const duration = originalEndTime.diff(originalStartTime, 'minutes', true);
+        
+        const newDate = targetDay;
+        const newTimeIn = newDate.clone()
+          .hour(originalStartTime.hour())
+          .minute(originalStartTime.minute())
+          .second(0)
+          .millisecond(0)
+          .toISOString();
+        const newTimeOut = moment(newTimeIn).add(duration, 'minutes').toISOString();
+        
+        // Update booking with new date
+        updateBookingMutation.mutate({
+          id: draggedBooking._id,
+          updates: {
+            timeIn: newTimeIn,
+            timeOut: newTimeOut,
+            startTime: newTimeIn,
+            endTime: newTimeOut,
+          }
+        });
+      }
+      return;
+    }
     const booking = normalizedBookings.find(b => b._id === active.id);
     
     if (!booking) return;
@@ -1751,6 +1932,7 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
           } catch {}
           handleDragStart(e);
         }}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="min-h-screen bg-white flex">
@@ -1865,27 +2047,48 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
                 const isToday = day.isSame(moment(), 'day');
                 const isSelected = day.isSame(selectedDate, 'day');
                 
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      const picked = day.toDate();
-                      onDateChange(picked);
-                      setCalendarBaseDate(picked);
-                    }}
-                    className={`
-                      w-8 h-8 rounded-lg text-sm font-medium transition-colors
-                      ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
-                      ${isToday ? 'bg-blue-100 text-blue-600' : ''}
-                      ${isSelected ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}
-                    `}
-                  >
-                    {day.format('D')}
-                  </button>
-                );
+                const MiniCalendarDay = ({ day, index }) => {
+                  const { setNodeRef, isOver } = useDroppable({
+                    id: `mini-calendar-day-${index}`,
+                  });
+
+                  const isDraggingOver = isOver && draggedBooking;
+                  
+                  return (
+                    <button
+                      ref={setNodeRef}
+                      key={index}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const picked = day.toDate();
+                        onDateChange(picked);
+                        setCalendarBaseDate(picked);
+                      }}
+                      className={`
+                        w-8 h-8 rounded-lg text-sm font-medium transition-all duration-200 relative
+                        ${isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
+                        ${isToday ? 'bg-blue-100 text-blue-600' : ''}
+                        ${isSelected ? 'bg-blue-600 text-white' : 'hover:bg-gray-100'}
+                        ${isDraggingOver ? 'bg-orange-200 border-2 border-orange-400 shadow-lg scale-110' : ''}
+                      `}
+                      title={isDraggingOver ? 'Drop to move booking to this date' : ''}
+                    >
+                      {day.format('D')}
+                      {isDraggingOver && (
+                        <div className="absolute inset-0 rounded-lg bg-orange-200 opacity-50 animate-pulse" />
+                      )}
+                      {isDraggingOver && draggedBooking && (
+                        <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg whitespace-nowrap z-50">
+                          Move to {day.format('MMM D')}
+                        </div>
+                      )}
+                    </button>
+                  );
+                };
+
+                return <MiniCalendarDay key={i} day={day} index={i} />;
               })}
             </div>
           </div>
@@ -1954,9 +2157,10 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
                       // Check if this is the current time slot - synchronized with red line
                       const isCurrentTimeSlot = currentTimeData && (() => {
                         const timeInterval = settings.timeInterval || 15;
-                        // Use exact same calculation as red line positioning
-                        const slotIndex = Math.round(currentTimeData.minutesFromStart / timeInterval);
-                        return index === slotIndex;
+                        // Use precise calculation to match the red line positioning
+                        const exactSlotPosition = currentTimeData.minutesFromStart / timeInterval;
+                        // Only highlight the slot if the current time is within this slot's time range
+                        return index <= exactSlotPosition && exactSlotPosition < index + 1;
                       })();
                       
                       return (
@@ -1969,19 +2173,77 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
                           }`}
                           style={{ height: '48px', width: SLOT_WIDTH, minWidth: SLOT_WIDTH }}
                         >
-                          {/* Enhanced time label with current time highlighting */}
+                          {/* Enhanced time label with alternative designs for tight spaces */}
                           {index > 0 && (
                             <div 
                               className="absolute -left-1/2 top-0 bottom-0 flex items-center justify-center z-90"
                               style={{ width: `${SLOT_WIDTH}px` }}
                             >
-                              <span className={`text-xs font-medium px-2 py-1 rounded-lg transition-all duration-300 ${
-                                isCurrentTimeSlot 
-                                  ? 'bg-red-600 text-white shadow-lg border-2 border-red-400 animate-pulse' 
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}>
-                                {slot.time}
-                              </span>
+                              {SLOT_WIDTH < 25 ? (
+                                // Very tight: Vertical time labels with dots
+                                <div className={`flex flex-col items-center justify-center transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'text-red-600' 
+                                    : 'text-gray-500'
+                                }`}>
+                                  <div className={`w-1 h-1 rounded-full mb-0.5 ${
+                                    isCurrentTimeSlot 
+                                      ? 'bg-red-600 animate-pulse' 
+                                      : 'bg-gray-400'
+                                  }`}></div>
+                                  <div className={`w-1 h-1 rounded-full ${
+                                    isCurrentTimeSlot 
+                                      ? 'bg-red-600 animate-pulse' 
+                                      : 'bg-gray-400'
+                                  }`}></div>
+                                </div>
+                              ) : SLOT_WIDTH < 35 ? (
+                                // Tight: Abbreviated time with minimal styling
+                                <div className={`text-center transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'text-red-600 font-bold' 
+                                    : 'text-gray-600'
+                                }`}>
+                                  <div className="text-[8px] leading-tight">
+                                    {slot.time.split(' ')[0].replace(':', '')}
+                                  </div>
+                                  <div className="text-[6px] leading-tight">
+                                    {slot.time.split(' ')[1]?.charAt(0) || ''}
+                                  </div>
+                                </div>
+                              ) : SLOT_WIDTH < 50 ? (
+                                // Compressed: Compact time format
+                                <span className={`text-[10px] font-medium px-1 py-0.5 rounded transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'bg-red-600 text-white shadow-lg border border-red-400 animate-pulse' 
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {slot.time.replace(' ', '').replace(':', '')}
+                                </span>
+                              ) : SLOT_WIDTH < 105 ? (
+                                // Small: Two-line time format with bigger text
+                                <div className={`text-center transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'text-red-600 font-bold' 
+                                    : 'text-gray-700'
+                                }`}>
+                                  <div className="text-sm font-semibold leading-tight">
+                                    {slot.time.split(' ')[0]}
+                                  </div>
+                                  <div className="text-xs leading-tight">
+                                    {slot.time.split(' ')[1] || ''}
+                                  </div>
+                                </div>
+                              ) : (
+                                // Normal: Standard time format
+                                <span className={`text-xs font-medium px-2 py-1 rounded-lg transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'bg-red-600 text-white shadow-lg border-2 border-red-400 animate-pulse' 
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}>
+                                  {slot.time}
+                                </span>
+                              )}
                             </div>
                           )}
                           {/* Show time for first column - same positioning as others */}
@@ -1990,13 +2252,71 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
                               className="absolute -left-1/2 top-0 bottom-0 flex items-center justify-center z-90"
                               style={{ width: `${SLOT_WIDTH}px` }}
                             >
-                              <span className={`text-xs font-medium px-2 py-1 rounded-lg transition-all duration-300 ${
-                                isCurrentTimeSlot 
-                                  ? 'bg-red-600 text-white shadow-lg border-2 border-red-400 animate-pulse' 
-                                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                              }`}>
-                                {slot.time}
-                              </span>
+                              {SLOT_WIDTH < 25 ? (
+                                // Very tight: Vertical time labels with dots
+                                <div className={`flex flex-col items-center justify-center transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'text-red-600' 
+                                    : 'text-gray-500'
+                                }`}>
+                                  <div className={`w-1 h-1 rounded-full mb-0.5 ${
+                                    isCurrentTimeSlot 
+                                      ? 'bg-red-600 animate-pulse' 
+                                      : 'bg-gray-400'
+                                  }`}></div>
+                                  <div className={`w-1 h-1 rounded-full ${
+                                    isCurrentTimeSlot 
+                                      ? 'bg-red-600 animate-pulse' 
+                                      : 'bg-gray-400'
+                                  }`}></div>
+                                </div>
+                              ) : SLOT_WIDTH < 35 ? (
+                                // Tight: Abbreviated time with minimal styling
+                                <div className={`text-center transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'text-red-600 font-bold' 
+                                    : 'text-gray-600'
+                                }`}>
+                                  <div className="text-[8px] leading-tight">
+                                    {slot.time.split(' ')[0].replace(':', '')}
+                                  </div>
+                                  <div className="text-[6px] leading-tight">
+                                    {slot.time.split(' ')[1]?.charAt(0) || ''}
+                                  </div>
+                                </div>
+                              ) : SLOT_WIDTH < 50 ? (
+                                // Compressed: Compact time format
+                                <span className={`text-[10px] font-medium px-1 py-0.5 rounded transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'bg-red-600 text-white shadow-lg border border-red-400 animate-pulse' 
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {slot.time.replace(' ', '').replace(':', '')}
+                                </span>
+                              ) : SLOT_WIDTH < 105 ? (
+                                // Small: Two-line time format with bigger text
+                                <div className={`text-center transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'text-red-600 font-bold' 
+                                    : 'text-gray-700'
+                                }`}>
+                                  <div className="text-sm font-semibold leading-tight">
+                                    {slot.time.split(' ')[0]}
+                                  </div>
+                                  <div className="text-xs leading-tight">
+                                    {slot.time.split(' ')[1] || ''}
+                                  </div>
+                                </div>
+                              ) : (
+                                // Normal: Standard time format
+                                <span className={`text-xs font-medium px-2 py-1 rounded-lg transition-all duration-300 ${
+                                  isCurrentTimeSlot 
+                                    ? 'bg-red-600 text-white shadow-lg border-2 border-red-400 animate-pulse' 
+                                    : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                                }`}>
+                                  {slot.time}
+                                </span>
+                              )}
                             </div>
                           )}
                           
@@ -2015,12 +2335,12 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
         </div>
 
         {/* Schedule Grid - Traditional Layout */}
-        <div className="flex-1 relative max-h-[calc(100vh-250px)] overflow-hidden">
+        <div className="flex-1 relative h-[calc(100vh-250px)] overflow-hidden">
           <div className="flex h-full">
-            {/* Sticky First Column - Name Label Column (No Red Light Effect) */}
-            <div ref={leftColumnRef} onScroll={syncGridFromLeftColumn} className="border-r border-gray-200 flex-shrink-0 z-20 overflow-y-auto w-32 sm:w-40 md:w-48">
+            {/* Sticky First Column - Name Label Column (With Red Light Effect) */}
+            <div ref={leftColumnRef} onScroll={syncGridFromLeftColumn} className="border-r border-gray-200 flex-shrink-0 z-20 overflow-y-auto w-32 sm:w-40 md:w-48 relative">
               {/* Room Info Cells Container - Background Color */}
-              <div className="bg-gray-50">
+              <div className="bg-gray-50" style={{ minHeight: `${getTotalGridHeight()}px` }}>
                 {rooms.map((room, roomIndex) => {
                   return (
                     <div 
@@ -2042,6 +2362,36 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
                   );
                 })}
               </div>
+              
+              {/* Current time red light effect in room name column */}
+              {currentTimeData && (() => {
+                const timeInterval = settings.timeInterval || 15;
+                // Calculate precise position without rounding for smooth clock-like movement
+                const exactSlotPosition = currentTimeData.minutesFromStart / timeInterval;
+                const topPixels = exactSlotPosition * SLOT_HEIGHT;
+                return (
+                  <div
+                    className="absolute left-0 right-0 z-30 pointer-events-none transition-all duration-1000 ease-linear"
+                    style={{ 
+                      top: `${topPixels}px`, 
+                      height: '3px',
+                      transform: 'translateY(-50%)' // Center the line on the exact time position
+                    }}
+                  >
+                    {/* Enhanced red line with glow effect */}
+                    <div className="relative h-full">
+                      {/* Outer glow */}
+                      <div className="absolute -top-1 -bottom-1 left-0 right-0 bg-red-400 opacity-30 blur-sm"></div>
+                      {/* Main line with gradient */}
+                      <div className="w-full h-full bg-gradient-to-r from-red-500 via-red-600 to-red-700 shadow-lg"></div>
+                      {/* Inner highlight */}
+                      <div className="absolute top-0 left-0 w-full h-full bg-white opacity-20"></div>
+                      {/* Animated pulse overlay */}
+                      <div className="absolute top-0 left-0 w-full h-full bg-red-300 opacity-30 animate-pulse"></div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Timeline Content Area - Synchronized Scroll */}
@@ -2049,9 +2399,9 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
               {/* Current time vertical line - synchronized with slot highlighting */}
               {currentTimeData && (() => {
                 const timeInterval = settings.timeInterval || 15;
-                // Use same calculation as slot highlighting for perfect synchronization
-                const slotIndex = Math.round(currentTimeData.minutesFromStart / timeInterval);
-                const leftPixels = slotIndex * SLOT_WIDTH;
+                // Calculate precise position without rounding for smooth clock-like movement
+                const exactSlotPosition = currentTimeData.minutesFromStart / timeInterval;
+                const leftPixels = exactSlotPosition * SLOT_WIDTH;
                 return (
                   <div
                     className="absolute top-0 bottom-0 z-30 pointer-events-none transition-all duration-1000 ease-linear"
@@ -2109,6 +2459,7 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
               {/* Bookings layer - positioned relative to the scrollable container */}
               <div className="absolute" style={{ top: '0px', left: '0', right: '0', bottom: '0', pointerEvents: 'none' }}>
         {rooms.flatMap((room, roomIndex) => {
+          // Use consistent room ID for lookup - handle both API and mock data
           const roomId = room._id || room.id;
           const roomBookings = bookingsByRoom[roomId] || [];
 
@@ -2117,16 +2468,41 @@ const TraditionalSchedule = ({ selectedDate = new Date(2025, 8, 14), onDateChang
             // Use the same positioning logic as AppleCalendarDashboard for consistency
             const timeInterval = settings.timeInterval || 15;
             
-            // Calculate top position based on actual time, not room index
-            const topPixels = (booking.startMinutes / timeInterval) * SLOT_HEIGHT;
+          // Calculate top position based on actual time AND room index for proper alignment
+          // Use the same SLOT_HEIGHT that's used for the grid to ensure perfect alignment
+          // booking.startMinutes is relative to business start time (can be negative for pre-open bookings)
+          // Map directly to grid coordinate system without offset adjustments
+          const timeTopPixels = (booking.startMinutes / timeInterval) * SLOT_HEIGHT;
+          const roomTopOffset = roomIndex * SLOT_HEIGHT; // Add room row offset
+          const topPixels = timeTopPixels + roomTopOffset;
             const heightPixels = (booking.durationMinutes / timeInterval) * SLOT_HEIGHT;
             
-            // Ensure minimum height for visibility
-            const minHeight = 1;
+            // Debug positioning for all bookings
+            console.log('🔍 TRADITIONAL POSITIONING DEBUG:', {
+              bookingName: booking.customerName || booking.title || 'No name',
+              roomIndex,
+              roomName: room.name,
+              roomId: roomId,
+              bookingRoomId: booking.roomId,
+              startMinutes: booking.startMinutes,
+              timeTopPixels,
+              roomTopOffset,
+              topPixels,
+              heightPixels,
+              SLOT_HEIGHT,
+              timeInterval,
+              startTime: booking.startTime,
+              endTime: booking.endTime,
+              leftPixels: booking.leftPixels,
+              widthPixels: booking.widthPixels
+            });
+            
+            // Ensure minimum height for visibility but maintain grid alignment
+            const minHeight = Math.max(1, SLOT_HEIGHT * 0.1); // 10% of slot height minimum
             const finalHeightPixels = Math.max(heightPixels, minHeight);
             
-            // Skip invalid bookings
-            if (finalHeightPixels <= 0 || topPixels < 0 || isNaN(topPixels) || isNaN(finalHeightPixels)) {
+            // Skip invalid bookings - allow negative topPixels for pre-open bookings
+            if (finalHeightPixels <= 0 || isNaN(topPixels) || isNaN(finalHeightPixels)) {
               return null;
             }
             

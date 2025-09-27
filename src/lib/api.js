@@ -3,35 +3,53 @@ import FetchClient from './fetchClient.js';
 import { API_CONFIG, FORCE_REAL_API, FALLBACK_TO_MOCK } from '../config/api.js';
 
 // API configuration - smart fallback system
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || API_CONFIG.BASE_URL;
+const API_BASE_URL = API_CONFIG.BASE_URL;
 let isMockMode = false; // Start with real API, fallback to mock
 let apiHealthChecked = false;
 let apiHealthy = false;
 
-// API configuration
+// API configuration - Fix port mismatch
 console.log('🔧 API Mode:', isMockMode ? 'MOCK' : 'REAL', '| Base URL:', API_BASE_URL);
+console.log('🔧 Environment:', import.meta.env.MODE, '| VITE_API_BASE_URL:', import.meta.env.VITE_API_BASE_URL);
 
 // Health check function
 const checkApiHealth = async () => {
   if (apiHealthChecked) return apiHealthy;
   
   try {
-    // Try both health endpoints
-    const healthUrls = [`${API_BASE_URL}/health`, `${API_BASE_URL}/api/health`];
+    // Try multiple health endpoints with different configurations
+    const healthUrls = [
+      `${API_BASE_URL}/health`,
+      `${API_BASE_URL}/api/health`,
+      'http://localhost:3000/api/health',  // Fallback to port 3000
+      'http://localhost:3001/api/health'   // Fallback to port 3001
+    ];
     
     for (const url of healthUrls) {
       try {
+        console.log('🏥 Testing health endpoint:', url);
         const response = await fetch(url, { 
           method: 'GET',
-          headers: API_CONFIG.HEADERS,
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           signal: AbortSignal.timeout(3000)
         });
         
         if (response.ok) {
-          apiHealthy = true;
-          apiHealthChecked = true;
-          console.log('🏥 API Health Check: ✅ HEALTHY via', url);
-          return true;
+          // Check if response is JSON
+          const contentType = response.headers.get('content-type');
+          if (contentType && contentType.includes('application/json')) {
+            apiHealthy = true;
+            apiHealthChecked = true;
+            console.log('🏥 API Health Check: ✅ HEALTHY via', url);
+            return true;
+          } else {
+            console.log('🏥 API Health Check: ❌ Non-JSON response from', url);
+          }
+        } else {
+          console.log('🏥 API Health Check: ❌ HTTP', response.status, 'from', url);
         }
       } catch (error) {
         console.log('🏥 API Health Check: ❌ FAILED for', url, '-', error.message);
@@ -176,6 +194,13 @@ export const authAPI = {
   },
   
   getSession: async () => {
+    // Check if we have a token in localStorage
+    const token = localStorage.getItem('authToken');
+    if (!token) {
+      console.log('❌ No token found, returning mock session');
+      return mockAPI.getSession();
+    }
+    
     if (isMockMode) {
       return mockAPI.getSession();
     }
@@ -340,13 +365,20 @@ export const businessHoursAPI = {
     }
     
     try {
+      // Ensure data is in the correct format
+      const businessHoursData = data.businessHours || data;
+      
+      // Validate that we have business hours data
+      if (!businessHoursData || !Array.isArray(businessHoursData)) {
+        throw new Error('Business hours data is required and must be an array');
+      }
       
       // Convert frontend format to backend format
-      const backendHours = convertToBackendFormat(data.businessHours || data);
+      const backendHours = convertToBackendFormat(businessHoursData);
       
       const url = tenantId ? `/business-hours?tenant_id=${tenantId}` : '/business-hours';
       const response = await apiClient.put(url, {
-        hours: backendHours
+        businessHours: backendHours
       });
       
       // Convert response back to frontend format
@@ -359,12 +391,11 @@ export const businessHoursAPI = {
         }
       };
     } catch (error) {
-      // Error updating business hours - logging removed for clean version
+      console.error('Error updating business hours:', error);
       
       // Enhanced error logging
       if (error.code === 'NETWORK_ERROR' || error.message.includes('Network Error')) {
-        // Network error details - logging removed for clean version
-        
+        console.log('Network error, falling back to mock mode');
         // Fallback to mock mode for network errors
         return mockAPI.updateBusinessHours(data);
       }

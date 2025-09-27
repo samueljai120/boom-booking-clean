@@ -2,20 +2,19 @@ import React from 'react';
 import { Calendar } from 'lucide-react';
 import { Button } from './ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import moment from 'moment';
+import { format, startOfWeek, endOfWeek, addDays, isSameDay, isBefore, isAfter, addWeeks } from 'date-fns';
 
 const DatePicker = ({ selectedDate, onDateChange }) => {
-  const today = moment();
-  const startOfWeek = moment().startOf('week');
-  const endOfWeek = moment().endOf('week');
+  const today = new Date();
+  const weekStart = startOfWeek(today, { weekStartsOn: 0 }); // Sunday
+  const weekEnd = endOfWeek(today, { weekStartsOn: 0 });
 
   // Generate calendar days
   const generateCalendarDays = () => {
     const days = [];
-    const start = startOfWeek.clone();
     
     for (let i = 0; i < 7; i++) {
-      const day = start.clone().add(i, 'days');
+      const day = addDays(weekStart, i);
       days.push(day);
     }
     
@@ -25,35 +24,35 @@ const DatePicker = ({ selectedDate, onDateChange }) => {
   const calendarDays = generateCalendarDays();
 
   const isToday = (date) => {
-    return date.isSame(today, 'day');
+    return isSameDay(date, today);
   };
 
   const isSelected = (date) => {
-    return date.isSame(selectedDate, 'day');
+    return isSameDay(date, selectedDate);
   };
 
   const isPast = (date) => {
-    return date.isBefore(today, 'day');
+    return isBefore(date, today);
   };
 
   const handleDateClick = (date) => {
     if (!isPast(date)) {
-      onDateChange(date.toDate());
+      onDateChange(date);
     }
   };
 
   const goToToday = () => {
-    onDateChange(today.toDate());
+    onDateChange(today);
   };
 
   const goToPreviousDay = () => {
-    const prevDay = moment(selectedDate).subtract(1, 'day');
-    onDateChange(prevDay.toDate());
+    const prevDay = addDays(selectedDate, -1);
+    onDateChange(prevDay);
   };
 
   const goToNextDay = () => {
-    const nextDay = moment(selectedDate).add(1, 'day');
-    onDateChange(nextDay.toDate());
+    const nextDay = addDays(selectedDate, 1);
+    onDateChange(nextDay);
   };
 
   return (
@@ -79,10 +78,10 @@ const DatePicker = ({ selectedDate, onDateChange }) => {
           
           <div className="text-center">
             <div className="font-medium text-gray-900">
-              {moment(selectedDate).format('MMMM YYYY')}
+              {format(selectedDate, 'MMMM yyyy')}
             </div>
             <div className="text-sm text-gray-500">
-              {moment(selectedDate).format('dddd, MMM D')}
+              {format(selectedDate, 'EEEE, MMM d')}
             </div>
           </div>
           
@@ -138,7 +137,7 @@ const DatePicker = ({ selectedDate, onDateChange }) => {
                   }
                 `}
               >
-                {day.format('D')}
+                {format(day, 'd')}
               </button>
             ))}
           </div>
@@ -153,7 +152,7 @@ const DatePicker = ({ selectedDate, onDateChange }) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onDateChange(today.add(1, 'day').toDate())}
+              onClick={() => onDateChange(addDays(today, 1))}
               className="text-xs"
             >
               Tomorrow
@@ -161,7 +160,7 @@ const DatePicker = ({ selectedDate, onDateChange }) => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onDateChange(today.add(7, 'days').toDate())}
+              onClick={() => onDateChange(addDays(today, 7))}
               className="text-xs"
             >
               Next Week

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import moment from 'moment';
+import { format } from 'date-fns';
 
 const DigitalClock = ({ 
   className = '', 
@@ -23,10 +23,10 @@ const DigitalClock = ({
     return () => clearInterval(interval);
   }, []);
 
-  const timeFormat = showSeconds ? 'h:mm:ss A' : 'h:mm A';
-  const timeString = moment(currentTime).tz(timezone).format(timeFormat);
-  const dateString = moment(currentTime).tz(timezone).format('MMM D, YYYY');
-  const dayString = moment(currentTime).tz(timezone).format('dddd');
+  const timeFormat = showSeconds ? 'h:mm:ss a' : 'h:mm a';
+  const timeString = format(currentTime, timeFormat);
+  const dateString = format(currentTime, 'MMM d, yyyy');
+  const dayString = format(currentTime, 'EEEE');
 
   const sizeClasses = {
     sm: 'text-sm',

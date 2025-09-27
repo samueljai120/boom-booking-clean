@@ -41,7 +41,24 @@ export const TenantProvider = ({ children }) => {
           const contentType = response.headers.get('content-type');
           if (!contentType || !contentType.includes('application/json')) {
             console.error('❌ Non-JSON response from subdomain-router:', response.status);
-            throw new Error('Invalid response format from subdomain router');
+            console.error('Response content-type:', contentType);
+            console.error('Response URL:', response.url);
+            
+            // Try to get response text for debugging
+            try {
+              const responseText = await response.text();
+              console.error('Response body:', responseText.substring(0, 200));
+            } catch (e) {
+              console.error('Could not read response body:', e.message);
+            }
+            
+            // For development, fall back gracefully instead of throwing
+            if (import.meta.env.MODE === 'development') {
+              console.log('🔄 Development mode: Falling back to localStorage for subdomain router');
+              throw new Error('Invalid response format from subdomain router');
+            } else {
+              throw new Error('Invalid response format from subdomain router');
+            }
           }
           
           const result = await response.json();
@@ -64,7 +81,24 @@ export const TenantProvider = ({ children }) => {
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
           console.error('❌ Non-JSON response from subdomain-detector:', response.status);
-          throw new Error('Invalid response format from subdomain detector');
+          console.error('Response content-type:', contentType);
+          console.error('Response URL:', response.url);
+          
+          // Try to get response text for debugging
+          try {
+            const responseText = await response.text();
+            console.error('Response body:', responseText.substring(0, 200));
+          } catch (e) {
+            console.error('Could not read response body:', e.message);
+          }
+          
+          // For development, fall back gracefully instead of throwing
+          if (import.meta.env.MODE === 'development') {
+            console.log('🔄 Development mode: Falling back to localStorage for subdomain detection');
+            throw new Error('Invalid response format from subdomain detector');
+          } else {
+            throw new Error('Invalid response format from subdomain detector');
+          }
         }
         
         const result = await response.json();

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { format, parseISO, addDays, subDays, startOfDay, endOfDay, isSameDay, isAfter, isBefore } from 'date-fns';
 import moment from 'moment-timezone';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { roomsAPI, bookingsAPI, healthAPI } from '../lib/api';
@@ -30,7 +31,7 @@ import TraditionalSchedule from './TraditionalSchedule';
 import LoadingSkeleton from './LoadingSkeleton';
 import AIBookingAssistant from './AIBookingAssistant';
 import AIAnalyticsDashboard from './AIAnalyticsDashboard';
-import MenuButton from './MenuButton';
+import FloatingActionButton from './FloatingActionButton';
 import toast from 'react-hot-toast';
 import {
   DndContext,
@@ -334,6 +335,9 @@ const AppleCalendarDashboard = () => {
   const { user } = useAuth();
   const [activeId, setActiveId] = useState(null);
   const [draggedBooking, setDraggedBooking] = useState(null);
+  const [dragTargetDate, setDragTargetDate] = useState(null); // Track the target date during drag
+  const [dateLocked, setDateLocked] = useState(false); // Track if date is locked
+  const [lockTimer, setLockTimer] = useState(null); // Timer for date locking
   
   // Component initialization
   
@@ -387,11 +391,11 @@ const AppleCalendarDashboard = () => {
     return () => window.removeEventListener('resize', onResize);
   }, []);
 
-  // Current time tracking
+  // Current time tracking with high frequency updates for smooth clock-like movement
   const [currentTime, setCurrentTime] = React.useState(new Date());
   React.useEffect(() => {
     const updateTime = () => setCurrentTime(new Date());
-    const interval = setInterval(updateTime, 60000); // Update every minute
+    const interval = setInterval(updateTime, 1000); // Update every second for smooth clock-like movement
     return () => clearInterval(interval);
   }, []);
 
@@ -435,14 +439,16 @@ const AppleCalendarDashboard = () => {
       return null; // Don't show line if outside business hours
     }
     
-    // Calculate position in minutes from start of business day
+    // Calculate position in minutes from start of business day with second precision
     const dayStart = selectedDateMoment.clone().startOf('day').add(openHour, 'hours').add(openMinute, 'minutes');
-    const minutesFromStart = now.diff(dayStart, 'minutes');
+    const minutesFromStart = now.diff(dayStart, 'minutes', true); // Include seconds for smooth movement
     
     return {
       minutesFromStart,
       time: now.format('h:mm A'),
-      isVisible: true
+      isVisible: true,
+      exactTime: now.format('HH:mm:ss'),
+      timezone: timezone
     };
   };
 
@@ -856,7 +862,10 @@ const AppleCalendarDashboard = () => {
     
     const mapped = bookings.map(b => ({
       ...b,
-      roomId: b.roomId || (b.room && typeof b.room === 'object' ? b.room._id : b.room),
+      // Normalize roomId to always be a primitive value for consistent matching
+      roomId: typeof b.roomId === 'object' && b.roomId !== null 
+        ? (b.roomId._id || b.roomId.id) 
+        : (b.room && typeof b.room === 'object' ? (b.room._id || b.room.id) : b.roomId),
       room: b.room || b.roomId,
       startTime: b.startTime || b.timeIn,
       endTime: b.endTime || b.timeOut,
@@ -1032,23 +1041,27 @@ const AppleCalendarDashboard = () => {
     
     rooms.forEach(room => {
       const roomBookings = normalizedBookings.filter(booking => {
-        // Improved room matching logic - handle both object and ID cases
-        let bookingRoomId;
-        if (typeof booking.roomId === 'object' && booking.roomId !== null) {
-          // roomId is an object, get the _id or id
-          bookingRoomId = booking.roomId._id || booking.roomId.id;
-        } else if (typeof booking.room === 'object' && booking.room !== null) {
-          // room is an object, get the _id or id
-          bookingRoomId = booking.room._id || booking.room.id;
-        } else {
-          // roomId or room is a primitive value
-          bookingRoomId = booking.roomId || booking.room;
-        }
+        // Simplified room matching logic - roomId is now always normalized to primitive
+        const bookingRoomId = booking.roomId;
+        // Handle both API and mock data structures - API has only 'id', mock has both '_id' and 'id'
+        const roomId = room._id || room.id;
         
-        const roomMatch = bookingRoomId == (room._id || room.id); // Use loose equality for type flexibility
+        // Debug room matching - catch all bookings to see what we're working with
+        console.log('🔍 ALL BOOKINGS DEBUG:', {
+          bookingName: booking.customerName || booking.title || 'No name',
+          bookingRoomId,
+          bookingRoomIdType: typeof bookingRoomId,
+          roomId,
+          roomIdType: typeof roomId,
+          roomMatch: bookingRoomId == roomId,
+          roomName: room.name,
+          bookingData: booking
+        });
+        
+        // Use strict equality since both are now primitive values
+        // Convert both to strings for consistent comparison
+        const roomMatch = String(bookingRoomId) === String(roomId);
         const statusMatch = booking.status !== 'cancelled' && booking.status !== 'no_show';
-        
-        // Room matching logic
         
         return roomMatch && statusMatch;
       });
@@ -1114,6 +1127,8 @@ const AppleCalendarDashboard = () => {
           const timeInterval = settings.timeInterval || 15; // Use configurable time interval
           
           // Calculate precise pixel positions based on actual time, not slot boundaries
+          // Use the same SLOT_HEIGHT that's used for the grid to ensure perfect alignment
+          // Map directly to grid coordinate system - allow negative positions for pre-open bookings
           const topPixels = (clampedStartMinutes / timeInterval) * SLOT_HEIGHT;
           const heightPixels = (clampedDuration / timeInterval) * SLOT_HEIGHT;
           
@@ -1123,8 +1138,8 @@ const AppleCalendarDashboard = () => {
           
           // Positioning calculation
           
-          // Force minimum dimensions to ensure visibility, but only for very small durations
-          const minHeight = 1; // Minimum 1px height
+          // Force minimum dimensions to ensure visibility but maintain grid alignment
+          const minHeight = Math.max(1, SLOT_HEIGHT * 0.1); // 10% of slot height minimum
           const finalHeightPixels = Math.max(heightPixels, minHeight);
           
           // Safety check for valid dimensions
@@ -1296,12 +1311,82 @@ const AppleCalendarDashboard = () => {
     const booking = normalizedBookings.find(b => b._id === active.id);
     setActiveId(active.id);
     setDraggedBooking(booking);
+    setDragTargetDate(null); // Reset target date on new drag
+    setDateLocked(false); // Reset date lock on new drag
+    if (lockTimer) {
+      clearTimeout(lockTimer);
+      setLockTimer(null);
+    }
+  };
+
+  // Handle drag over mini calendar days to change date
+  const handleDragOver = (event) => {
+    const { active, over } = event;
+    
+    // Check if dragging over a mini calendar day
+    if (over && over.id && over.id.startsWith('mini-calendar-day-')) {
+      // If date is locked, don't change it
+      if (dateLocked) {
+        return;
+      }
+      
+      const dayIndex = parseInt(over.id.replace('mini-calendar-day-', ''));
+      const targetDay = calendarDays[dayIndex];
+      
+      if (targetDay && !targetDay.date.isSame(selectedDate, 'day')) {
+        // Clear any existing timer
+        if (lockTimer) {
+          clearTimeout(lockTimer);
+          console.log('Cleared existing lock timer');
+        }
+        
+        // Set new target date
+        setDragTargetDate(targetDay.date.toDate());
+        
+        // Change the selected date to the hovered day with smooth transition
+        handleDayClick(targetDay);
+        
+        // Start 2-second timer to lock the date
+        const timer = setTimeout(() => {
+          setDateLocked(true);
+          console.log('Date locked after 2 seconds');
+        }, 2000);
+        setLockTimer(timer);
+        console.log('Started 2-second lock timer for date:', targetDay.date.format('MMM D'));
+        
+        // Add visual feedback for date change
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('date-changed-during-drag', {
+            detail: { 
+              newDate: targetDay.date.toDate(),
+              draggedBooking: draggedBooking 
+            }
+          }));
+        }
+      }
+    } else {
+      // Not hovering over mini calendar - reset lock timer and unlock date
+      if (lockTimer) {
+        clearTimeout(lockTimer);
+        setLockTimer(null);
+      }
+      if (dateLocked) {
+        setDateLocked(false);
+        console.log('Date unlocked - left mini calendar');
+      }
+    }
   };
 
   const handleDragEnd = (event) => {
     const { active, over } = event;
     setActiveId(null);
     setDraggedBooking(null);
+    setDragTargetDate(null); // Reset target date on drag end
+    // Don't reset dateLocked here - let it persist until next drag
+    if (lockTimer) {
+      clearTimeout(lockTimer);
+      setLockTimer(null);
+    }
 
     if (!over) {
       return;
@@ -1315,6 +1400,40 @@ const AppleCalendarDashboard = () => {
     const booking = normalizedBookings.find(b => b._id === active.id);
     
     if (!booking) {
+      return;
+    }
+
+    // Check if dropped on mini calendar day
+    if (overId.startsWith('mini-calendar-day-')) {
+      const dayIndex = parseInt(overId.replace('mini-calendar-day-', ''));
+      const targetDay = calendarDays[dayIndex];
+      
+      if (targetDay && draggedBooking) {
+        // Move booking to the new date (same time, new date)
+        const originalStartTime = moment(draggedBooking.timeIn || draggedBooking.startTime);
+        const originalEndTime = moment(draggedBooking.timeOut || draggedBooking.endTime);
+        const duration = originalEndTime.diff(originalStartTime, 'minutes', true);
+        
+        const newDate = targetDay.date;
+        const newTimeIn = newDate.clone()
+          .hour(originalStartTime.hour())
+          .minute(originalStartTime.minute())
+          .second(0)
+          .millisecond(0)
+          .toISOString();
+        const newTimeOut = moment(newTimeIn).add(duration, 'minutes').toISOString();
+        
+        // Update booking with new date
+        updateBookingMutation.mutate({
+          id: draggedBooking._id,
+          updates: {
+            timeIn: newTimeIn,
+            timeOut: newTimeOut,
+            startTime: newTimeIn,
+            endTime: newTimeOut,
+          }
+        });
+      }
       return;
     }
 
@@ -1351,6 +1470,22 @@ const AppleCalendarDashboard = () => {
       const newTimeIn = dayStart.clone().add(slotHour, 'hours').add(slotMinute, 'minutes').toISOString();
       const duration = moment(booking.timeOut || booking.endTime).diff(moment(booking.timeIn || booking.startTime), 'minutes', true);
       const newTimeOut = dayStart.clone().add(slotHour, 'hours').add(slotMinute, 'minutes').add(duration, 'minutes').toISOString();
+      
+      // Debug booking alignment
+      console.log('🔍 BOOKING ALIGNMENT DEBUG:', {
+        bookingId: booking._id,
+        bookingRoomId: booking.roomId,
+        targetRoomId: roomId,
+        roomMatch: booking.roomId == roomId,
+        slotHour,
+        slotMinute,
+        newTimeIn,
+        newTimeOut,
+        selectedDate: selectedDate.toISOString(),
+        dateLocked,
+        targetSlot,
+        rooms: rooms.map(r => ({ id: r._id || r.id, name: r.name }))
+      });
 
       // Check if dropping on different room or time
       const currentRoomId = booking.room?._id || booking.roomId?._id || booking.roomId;
@@ -1396,6 +1531,7 @@ const AppleCalendarDashboard = () => {
           });
         } else if (conflicts.length === 0) {
           // No conflicts - simple move
+          console.log('Moving booking - no conflicts');
           moveBookingMutation.mutate({
             bookingId: booking._id,
             newRoomId: roomId,
@@ -1404,6 +1540,7 @@ const AppleCalendarDashboard = () => {
           });
         } else {
           // Multiple conflicts - show error
+          console.log('Multiple conflicts detected:', conflicts.length);
           toast.error('Cannot place booking here: Multiple conflicting reservations detected.');
         }
       }
@@ -1736,18 +1873,19 @@ const AppleCalendarDashboard = () => {
             } catch {}
             handleDragStart(e);
           }}
+          onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
           <div className="flex-1 relative max-h-[calc(100vh-200px)] overflow-hidden">
             <div className="flex flex-col h-full">
               {/* Sticky Header Row */}
-              <div className="flex border-b border-gray-200 bg-gray-50 flex-shrink-0 z-20">
+              <div className="flex border-b border-gray-200 bg-gray-50 flex-shrink-0 z-20 relative">
                 <div className="h-16 border-r border-gray-200 bg-gray-50" style={{ width: TIME_COL_WIDTH }}></div>
                 {rooms.map((room, roomIndex) => {
                   return (
                     <div
                       key={room._id || room.id}
-                      className="flex-1 h-16 border-r border-gray-200 px-3 md:px-4 flex items-center last:border-r-0"
+                      className="flex-1 h-16 border-r border-gray-200 px-3 md:px-4 flex items-center last:border-r-0 relative"
                       style={{ minWidth: `${ROOM_COL_WIDTH}px` }}
                     >
                       <div className="flex items-center space-x-3">
@@ -1762,6 +1900,36 @@ const AppleCalendarDashboard = () => {
                           </p>
                         </div>
                       </div>
+                      
+                      {/* Current time red light effect in room header - vertical indicator */}
+                      {currentTimeData && (() => {
+                        const timeInterval = settings.timeInterval || 15;
+                        // Calculate precise position without rounding for smooth clock-like movement
+                        const exactSlotPosition = currentTimeData.minutesFromStart / timeInterval;
+                        const topPixels = exactSlotPosition * SLOT_HEIGHT;
+                        return (
+                          <div
+                            className="absolute left-0 right-0 z-30 pointer-events-none transition-all duration-1000 ease-linear"
+                            style={{ 
+                              top: `${topPixels}px`, 
+                              height: '3px',
+                              transform: 'translateY(-50%)' // Center the line on the exact time position
+                            }}
+                          >
+                            {/* Enhanced red line with glow effect */}
+                            <div className="relative h-full">
+                              {/* Outer glow */}
+                              <div className="absolute -top-1 -bottom-1 left-0 right-0 bg-red-400 opacity-30 blur-sm"></div>
+                              {/* Main line with gradient */}
+                              <div className="w-full h-full bg-gradient-to-r from-red-500 via-red-600 to-red-700 shadow-lg"></div>
+                              {/* Inner highlight */}
+                              <div className="absolute top-0 left-0 w-full h-full bg-white opacity-20"></div>
+                              {/* Animated pulse overlay */}
+                              <div className="absolute top-0 left-0 w-full h-full bg-red-300 opacity-30 animate-pulse"></div>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
@@ -1775,9 +1943,10 @@ const AppleCalendarDashboard = () => {
                     // Check if this is the current time slot - synchronized with red line
                     const isCurrentTimeSlot = currentTimeData && (() => {
                       const timeInterval = settings.timeInterval || 15;
-                      // Use exact same calculation as red line positioning
-                      const currentSlotIndex = Math.round(currentTimeData.minutesFromStart / timeInterval);
-                      return slotIndex === currentSlotIndex;
+                      // Use precise calculation to match the red line positioning
+                      const exactSlotPosition = currentTimeData.minutesFromStart / timeInterval;
+                      // Only highlight the slot if the current time is within this slot's time range
+                      return slotIndex <= exactSlotPosition && exactSlotPosition < slotIndex + 1;
                     })();
                     
                     return (
@@ -1833,13 +2002,14 @@ const AppleCalendarDashboard = () => {
             {/* Current time indicator - positioned outside bookings layer for proper overflow */}
             {currentTimeData && (() => {
               const timeInterval = settings.timeInterval || 15; // Use configurable time interval
-              const slotIndex = Math.round(currentTimeData.minutesFromStart / timeInterval);
-              const topPixels = slotIndex * SLOT_HEIGHT;
+              // Calculate precise position without rounding for smooth clock-like movement
+              const exactSlotPosition = currentTimeData.minutesFromStart / timeInterval;
+              const topPixels = exactSlotPosition * SLOT_HEIGHT;
               // Position label so 50% extends above the timeline header
               const labelTop = 64 + topPixels - 24; // 64px is the header height, -12px for 50% overflow
               return (
                 <div
-                  className="absolute z-20 pointer-events-none"
+                  className="absolute z-20 pointer-events-none transition-all duration-1000 ease-linear"
                   style={{ top: `${labelTop}px`, left: `${TIME_COL_WIDTH}px`, right: '0' }}
                 >
                   {/* Enhanced time label with better visibility */}
@@ -1858,11 +2028,12 @@ const AppleCalendarDashboard = () => {
               {/* Current time line - extends horizontally through the schedule */}
               {currentTimeData && (() => {
                 const timeInterval = settings.timeInterval || 15; // Use configurable time interval
-                const slotIndex = Math.round(currentTimeData.minutesFromStart / timeInterval);
-                const topPixels = slotIndex * SLOT_HEIGHT;
+                // Calculate precise position without rounding for smooth clock-like movement
+                const exactSlotPosition = currentTimeData.minutesFromStart / timeInterval;
+                const topPixels = exactSlotPosition * SLOT_HEIGHT;
                 return (
                   <div
-                    className="absolute left-0 right-0 z-20 pointer-events-none"
+                    className="absolute left-0 right-0 z-20 pointer-events-none transition-all duration-1000 ease-linear"
                     style={{ top: `${topPixels}px` }}
                   >
                     {/* Enhanced red line with glow effect */}
@@ -1879,26 +2050,45 @@ const AppleCalendarDashboard = () => {
               })()}
 
               {rooms.map((room, roomIndex) => {
-                const roomBookings = bookingsByRoom[room._id || room.id] || [];
+                // Use consistent room ID for lookup - handle both API and mock data
+                const roomId = room._id || room.id;
+                const roomBookings = bookingsByRoom[roomId] || [];
 
                 return roomBookings.map((booking) => {
                   // Calculate proper positioning to align with grid slots
-                  const roomColumnWidth = getActualRoomColumnWidth();
-                  const leftOffset = roomIndex * roomColumnWidth;
+                  // Use actual rendered column width for flex layout
+                  const availableWidth = windowWidth - TIME_COL_WIDTH - (sidebarOpen ? (windowWidth < 640 ? 256 : windowWidth < 1024 ? 288 : 320) : 56);
+                  const actualRoomColumnWidth = availableWidth / rooms.length;
+                  const leftOffset = roomIndex * actualRoomColumnWidth;
+                  
+                  // Debug positioning for all bookings
+                  console.log('🔍 POSITIONING DEBUG:', {
+                    bookingName: booking.customerName || booking.title || 'No name',
+                    roomIndex,
+                    roomName: room.name,
+                    leftOffset,
+                    actualRoomColumnWidth,
+                    topPixels: booking.topPixels,
+                    heightPixels: booking.heightPixels,
+                    startMinutes: booking.startMinutes,
+                    durationMinutes: booking.durationMinutes,
+                    startTime: booking.startTime,
+                    endTime: booking.endTime
+                  });
                   
                   const style = {
                     position: 'absolute',
                     left: `${leftOffset + 2}px`,
-                    width: `${roomColumnWidth - 4}px`,
-                    top: `${booking.topPixels}px`,
+                    width: `${actualRoomColumnWidth - 4}px`,
+                    top: `${booking.topPixels}px`, // topPixels already includes room offset in booking calculation
                     height: `${booking.heightPixels}px`,
                     backgroundColor: settings.colorByBookingSource ? getBookingColorBySource(booking) : (room.color || getRoomTypeColor(room.category)),
                     zIndex: 10,
                     pointerEvents: 'auto',
                   };
                   
-                  // Check for invisible booking issues
-                  if (booking.heightPixels <= 0 || booking.topPixels < 0) {
+                  // Check for invisible booking issues - allow negative topPixels for pre-open bookings
+                  if (booking.heightPixels <= 0) {
                     return null; // Skip invalid bookings
                   }
                   
@@ -1948,27 +2138,6 @@ const AppleCalendarDashboard = () => {
           </DragOverlay>
         </DndContext>
 
-        {/* Floating action button: New Booking */}
-        <button
-          type="button"
-          onClick={() => {
-            const weekday = selectedDate.getDay();
-            const dayHours = getBusinessHoursForDay(weekday);
-            const [openHour] = dayHours.openTime.split(':').map(Number);
-            const start = moment(selectedDate).startOf('hour');
-            const end = start.clone().add(1, 'hour');
-            setSelectedBooking({
-              start: start.toDate(),
-              end: end.toDate(),
-              resource: { roomId: rooms?.[0]?._id }
-            });
-            setIsModalOpen(true);
-          }}
-          className="fixed bottom-6 right-6 h-16 w-16 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 z-50 flex items-center justify-center"
-          aria-label="New booking"
-        >
-          <Plus className="w-8 h-8" />
-        </button>
 
         {/* Reservation View Modal */}
         <ReservationViewModal
@@ -2083,18 +2252,28 @@ const AppleCalendarDashboard = () => {
         </div>
       )}
 
-      {/* Floating Menu Button - Bottom Left */}
-      <div className="fixed bottom-6 left-6 z-40">
-        <MenuButton
-          sidebarOpen={sidebarOpen}
-          onShowAIBooking={() => setShowAIBooking(true)}
-          onShowAIAnalytics={() => setShowAIAnalytics(true)}
-          onShowAnalytics={() => setShowAnalytics(true)}
-          onShowCustomerBase={() => setShowCustomerBase(true)}
-          onShowInstructions={() => setShowInstructions(true)}
-          onShowSettings={() => setShowSettings(true)}
-        />
-      </div>
+      {/* Floating Action Button - Bottom Left */}
+      <FloatingActionButton
+        onShowAIBooking={() => setShowAIBooking(true)}
+        onShowAIAnalytics={() => setShowAIAnalytics(true)}
+        onShowAnalytics={() => setShowAnalytics(true)}
+        onShowCustomerBase={() => setShowCustomerBase(true)}
+        onShowInstructions={() => setShowInstructions(true)}
+        onShowSettings={() => setShowSettings(true)}
+        onCreateBooking={() => {
+          const weekday = selectedDate.getDay();
+          const dayHours = getBusinessHoursForDay(weekday);
+          const [openHour] = dayHours.openTime.split(':').map(Number);
+          const start = moment(selectedDate).startOf('hour');
+          const end = start.clone().add(1, 'hour');
+          setSelectedBooking({
+            start: start.toDate(),
+            end: end.toDate(),
+            resource: { roomId: rooms?.[0]?._id }
+          });
+          setIsModalOpen(true);
+        }}
+      />
     </>
   );
 };

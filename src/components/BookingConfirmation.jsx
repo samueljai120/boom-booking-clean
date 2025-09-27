@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import moment from 'moment-timezone';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -20,7 +21,7 @@ import {
   Save,
   RotateCcw
 } from 'lucide-react';
-import moment from 'moment';
+import { format } from 'date-fns';
 import toast from 'react-hot-toast';
 import { useBusinessInfo } from '../contexts/BusinessInfoContext';
 import { useSettings } from '../contexts/SettingsContext';

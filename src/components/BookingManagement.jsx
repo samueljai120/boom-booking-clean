@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import moment from 'moment-timezone';
 import { bookingsAPI, roomsAPI } from '../lib/api';
 import { useSettings } from '../contexts/SettingsContext';
 import { useBusinessHours } from '../contexts/BusinessHoursContext';
@@ -31,7 +32,7 @@ import {
   X
 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import moment from 'moment';
+import { format } from 'date-fns';
 import ReservationViewModal from './ReservationViewModal';
 
 const BookingManagement = () => {

@@ -38,6 +38,7 @@ const LandingPage = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false);
   const testimonialIntervalRef = useRef(null);
   const { login } = useAuth();
 
@@ -700,559 +701,24 @@ const LandingPage = () => {
         </div>
       </main>
 
-      {/* Features Section */}
-      <section id="features" className="py-20 bg-white relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center mb-16"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <motion.h2 
-              className="text-4xl md:text-5xl font-bold text-gray-900 mb-4"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              Everything You Need to Run Your Venue
-            </motion.h2>
-            <motion.p 
-              className="text-xl text-gray-600 max-w-2xl mx-auto"
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              viewport={{ once: true }}
-            >
-              Powerful features designed specifically for karaoke venues and entertainment businesses.
-            </motion.p>
-          </motion.div>
-
-          <motion.div 
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
-            variants={staggerContainer}
-            initial="initial"
-            whileInView="animate"
-            viewport={{ once: true }}
-          >
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={fadeInUp}
-                whileHover={{ 
-                  y: -10, 
-                  scale: 1.02,
-                  transition: { type: "spring", stiffness: 300 }
-                }}
-                className="group"
-              >
-                <Card className="p-6 hover:shadow-2xl transition-all duration-300 border-0 bg-gradient-to-br from-white to-gray-50 group-hover:from-blue-50 group-hover:to-purple-50 relative overflow-hidden feature-card feature-glow">
-                  {/* Feature Illustration */}
-                  <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity duration-300">
-                    {feature.demo === 'calendar' && (
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <rect x="10" y="20" width="80" height="60" rx="5" fill="currentColor" />
-                        <rect x="15" y="25" width="70" height="8" rx="2" fill="currentColor" />
-                        <rect x="15" y="35" width="20" height="6" rx="1" fill="currentColor" />
-                        <rect x="40" y="35" width="20" height="6" rx="1" fill="currentColor" />
-                        <rect x="65" y="35" width="20" height="6" rx="1" fill="currentColor" />
-                        <rect x="15" y="45" width="15" height="6" rx="1" fill="currentColor" />
-                        <rect x="35" y="45" width="15" height="6" rx="1" fill="currentColor" />
-                        <rect x="55" y="45" width="15" height="6" rx="1" fill="currentColor" />
-                        <rect x="75" y="45" width="10" height="6" rx="1" fill="currentColor" />
-                      </svg>
-                    )}
-                    {feature.demo === 'users' && (
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <circle cx="30" cy="30" r="12" fill="currentColor" />
-                        <circle cx="70" cy="30" r="12" fill="currentColor" />
-                        <circle cx="50" cy="60" r="15" fill="currentColor" />
-                        <path d="M20 80 Q30 70 40 80 Q50 90 60 80 Q70 70 80 80" stroke="currentColor" strokeWidth="3" fill="none" />
-                      </svg>
-                    )}
-                    {feature.demo === 'mobile' && (
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <rect x="25" y="10" width="50" height="80" rx="8" fill="currentColor" />
-                        <rect x="30" y="20" width="40" height="50" rx="2" fill="white" />
-                        <circle cx="50" cy="75" r="3" fill="currentColor" />
-                      </svg>
-                    )}
-                    {feature.demo === 'analytics' && (
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <rect x="10" y="60" width="15" height="30" fill="currentColor" />
-                        <rect x="30" y="40" width="15" height="50" fill="currentColor" />
-                        <rect x="50" y="20" width="15" height="70" fill="currentColor" />
-                        <rect x="70" y="30" width="15" height="60" fill="currentColor" />
-                        <path d="M17.5 45 Q32.5 25 47.5 35 Q62.5 45 77.5 25" stroke="currentColor" strokeWidth="3" fill="none" />
-                      </svg>
-                    )}
-                    {feature.demo === 'security' && (
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <path d="M50 10 L70 20 L70 50 Q70 70 50 80 Q30 70 30 50 L30 20 Z" fill="currentColor" />
-                        <circle cx="50" cy="50" r="8" fill="white" />
-                        <path d="M45 50 L48 53 L55 46" stroke="white" strokeWidth="2" fill="none" />
-                      </svg>
-                    )}
-                    {feature.demo === 'performance' && (
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <circle cx="50" cy="50" r="30" fill="none" stroke="currentColor" strokeWidth="4" />
-                        <path d="M50 20 L60 40 L80 40 L65 55 L70 75 L50 60 L30 75 L35 55 L20 40 L40 40 Z" fill="currentColor" />
-                      </svg>
-                    )}
-                  </div>
-
-                  <motion.div 
-                    className={`w-16 h-16 rounded-xl bg-gradient-to-r ${feature.color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300 relative z-10`}
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.6 }}
-                  >
-                    <div className="text-white">{feature.icon}</div>
-                  </motion.div>
-                  <h3 className="text-xl font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors relative z-10">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 mb-4 relative z-10">{feature.description}</p>
-                  <motion.button
-                    className="text-blue-600 font-medium flex items-center group-hover:text-purple-600 transition-colors relative z-10 disabled:opacity-50"
-                    whileHover={{ x: 5 }}
-                    disabled={loading}
-                    onClick={handleDemoLogin}
-                  >
-                    <MousePointer className="w-4 h-4 mr-2" />
-                    {loading ? 'Logging in...' : 'Try Live Demo'}
-                    <ArrowRight className="w-4 h-4 ml-1" />
-                  </motion.button>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Enhanced Mobile App Preview Section */}
-      <section className="py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-        {/* Enhanced Background Effects */}
+      {/* Modern Features Section */}
+      <section id="features" className="py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 relative overflow-hidden">
+        {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Floating particles */}
-          {[...Array(25)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="particle absolute w-1 h-1 bg-blue-300 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -120, 0],
-                opacity: [0, 0.6, 0],
-                scale: [0, 1.2, 0],
-              }}
-              transition={{
-                duration: Math.random() * 12 + 12,
-                repeat: Infinity,
-                delay: Math.random() * 12,
-              }}
-            />
-          ))}
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
           
-          {/* Gradient orbs */}
-          <div className="absolute top-1/3 left-1/4 w-80 h-80 bg-gradient-to-r from-blue-200/15 to-purple-200/15 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/3 right-1/4 w-96 h-96 bg-gradient-to-r from-indigo-200/15 to-pink-200/15 rounded-full blur-3xl animate-pulse" />
-          
-          {/* Floating geometric shapes */}
+          {/* Floating elements */}
           <motion.div
-            className="absolute top-20 right-20 w-16 h-16 border-2 border-blue-200/30 rounded-lg"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          />
-          <motion.div
-            className="absolute bottom-32 left-16 w-12 h-12 bg-blue-200/20 rounded-full"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+            className="absolute top-20 right-20 w-4 h-4 bg-blue-400/20 rounded-full"
+            animate={{ y: [0, -20, 0], opacity: [0.3, 0.7, 0.3] }}
             transition={{ duration: 4, repeat: Infinity }}
           />
-        </div>
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            {/* Left Column - Enhanced Text */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              {/* Badge */}
-              <motion.div
-                className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-6"
-                initial={{ opacity: 0, scale: 0.8 }}
-                whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                viewport={{ once: true }}
-              >
-                <Smartphone className="w-4 h-4 mr-2" />
-                Mobile App Available
-              </motion.div>
-
-              <motion.h2 
-                className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-6"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                viewport={{ once: true }}
-              >
-                Manage Bookings on the Go
-              </motion.h2>
-              
-              <motion.p 
-                className="text-xl text-gray-600 mb-8 leading-relaxed"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                viewport={{ once: true }}
-              >
-                Our mobile app gives you complete control over your venue's bookings, even when you're away from the office. Experience seamless management with real-time updates and offline capabilities.
-              </motion.p>
-              
-              {/* Enhanced Feature List */}
-              <motion.div 
-                className="space-y-6 mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                viewport={{ once: true }}
-              >
-                {[
-                  { icon: CheckCircle, text: "Real-time booking notifications", color: "green" },
-                  { icon: Shield, text: "Offline mode support", color: "blue" },
-                  { icon: Zap, text: "Push notifications for updates", color: "purple" },
-                  { icon: BarChart3, text: "Live analytics dashboard", color: "indigo" },
-                  { icon: Users, text: "Team collaboration features", color: "pink" }
-                ].map((feature, index) => (
-                  <motion.div 
-                    key={index}
-                    className="flex items-center group"
-                    initial={{ opacity: 0, x: -20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
-                    viewport={{ once: true }}
-                    whileHover={{ x: 5 }}
-                  >
-                    <motion.div 
-                      className={`w-10 h-10 bg-${feature.color}-100 rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300`}
-                      whileHover={{ rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <feature.icon className={`w-5 h-5 text-${feature.color}-600`} />
-                    </motion.div>
-                    <span className="text-gray-700 text-lg font-medium group-hover:text-gray-900 transition-colors">
-                      {feature.text}
-                    </span>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {/* Statistics */}
-              <motion.div 
-                className="grid grid-cols-3 gap-6 mb-8"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.7 }}
-                viewport={{ once: true }}
-              >
-                {[
-                  { number: "50K+", label: "Downloads" },
-                  { number: "4.8★", label: "Rating" },
-                  { number: "99.9%", label: "Uptime" }
-                ].map((stat, index) => (
-                  <motion.div 
-                    key={index}
-                    className="text-center p-4 bg-white/50 rounded-xl backdrop-blur-sm border border-white/20"
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <div className="text-2xl font-bold text-gray-900">{stat.number}</div>
-                    <div className="text-sm text-gray-600">{stat.label}</div>
-                  </motion.div>
-                ))}
-              </motion.div>
-
-              {/* App Store Badges */}
-              <motion.div 
-                className="flex flex-col sm:flex-row gap-4"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.8 }}
-                viewport={{ once: true }}
-              >
-                <motion.button
-                  className="flex items-center px-6 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div className="text-2xl mr-3">📱</div>
-                  <div className="text-left">
-                    <div className="text-xs">Download on the</div>
-                    <div className="text-lg font-semibold">App Store</div>
-                  </div>
-                </motion.button>
-                
-                <motion.button
-                  className="flex items-center px-6 py-3 bg-black text-white rounded-xl hover:bg-gray-800 transition-colors duration-300"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <div className="text-2xl mr-3">🤖</div>
-                  <div className="text-left">
-                    <div className="text-xs">Get it on</div>
-                    <div className="text-lg font-semibold">Google Play</div>
-                  </div>
-                </motion.button>
-              </motion.div>
-            </motion.div>
-
-            {/* Right Column - Enhanced Mobile Mockups */}
-            <motion.div 
-              className="relative"
-              initial={{ opacity: 0, x: 50 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              viewport={{ once: true }}
-            >
-              {/* Floating elements around phones */}
-              <motion.div
-                className="absolute -top-8 -left-8 w-6 h-6 bg-blue-400 rounded-full"
-                animate={{ y: [0, -20, 0], opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 3, repeat: Infinity }}
-              />
-              <motion.div
-                className="absolute -bottom-8 -right-8 w-4 h-4 bg-purple-400 rounded-full"
-                animate={{ y: [0, 20, 0], opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 4, repeat: Infinity }}
-              />
-
-              <div className="flex justify-center space-x-6">
-                {/* Phone 1 - Enhanced */}
-                <motion.div 
-                  className="relative"
-                  animate={{ y: [0, -15, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <div className="w-56 h-[600px] phone-mockup rounded-[2.5rem] p-3 shadow-2xl bg-gradient-to-b from-gray-800 to-gray-900">
-                    <div className="w-full h-full phone-screen rounded-[2rem] overflow-hidden bg-white relative">
-                      {/* Status bar */}
-                      <div className="bg-gray-900 text-white px-4 py-2 flex justify-between items-center text-xs">
-                        <span>9:41</span>
-                        <div className="flex space-x-1">
-                          <div className="w-4 h-2 bg-white rounded-sm"></div>
-                          <div className="w-4 h-2 bg-white rounded-sm"></div>
-                          <div className="w-4 h-2 bg-white rounded-sm"></div>
-                        </div>
-                      </div>
-                      
-                      {/* Header */}
-                      <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 text-center">
-                        <h3 className="font-bold text-lg">Today's Bookings</h3>
-                        <p className="text-sm opacity-90">12 active bookings</p>
-                      </div>
-                      
-                      {/* Content */}
-                      <div className="p-4 space-y-4 h-full overflow-y-auto">
-                        {[
-                          { room: "Room A", time: "2:00 PM", customer: "John Smith", status: "confirmed", color: "green" },
-                          { room: "Room B", time: "4:00 PM", customer: "Sarah Chen", status: "pending", color: "yellow" },
-                          { room: "Room C", time: "6:30 PM", customer: "Mike Johnson", status: "confirmed", color: "green" },
-                          { room: "Room A", time: "8:00 PM", customer: "Emma Davis", status: "confirmed", color: "green" }
-                        ].map((booking, index) => (
-                          <motion.div 
-                            key={index}
-                            className={`bg-${booking.color}-50 p-4 rounded-xl border-l-4 border-${booking.color}-400`}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: index * 0.2 }}
-                          >
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <p className="font-semibold text-gray-900">{booking.room} - {booking.time}</p>
-                                <p className="text-sm text-gray-600">{booking.customer}</p>
-                              </div>
-                              <div className={`w-3 h-3 bg-${booking.color}-400 rounded-full`}></div>
-                            </div>
-                          </motion.div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Phone 2 - Enhanced */}
-                <motion.div 
-                  className="relative"
-                  animate={{ y: [0, 15, 0] }}
-                  transition={{ duration: 5, repeat: Infinity }}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <div className="w-56 h-[600px] phone-mockup rounded-[2.5rem] p-3 shadow-2xl bg-gradient-to-b from-gray-800 to-gray-900">
-                    <div className="w-full h-full phone-screen rounded-[2rem] overflow-hidden bg-white relative">
-                      {/* Status bar */}
-                      <div className="bg-gray-900 text-white px-4 py-2 flex justify-between items-center text-xs">
-                        <span>9:41</span>
-                        <div className="flex space-x-1">
-                          <div className="w-4 h-2 bg-white rounded-sm"></div>
-                          <div className="w-4 h-2 bg-white rounded-sm"></div>
-                          <div className="w-4 h-2 bg-white rounded-sm"></div>
-                        </div>
-                      </div>
-                      
-                      {/* Header */}
-                      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white p-4 text-center">
-                        <h3 className="font-bold text-lg">Analytics</h3>
-                        <p className="text-sm opacity-90">Performance insights</p>
-                      </div>
-                      
-                      {/* Content */}
-                      <div className="p-4 space-y-4">
-                        {/* Chart */}
-                        <div className="h-32 bg-gradient-to-t from-blue-100 via-purple-100 to-pink-100 rounded-xl flex items-end justify-center relative overflow-hidden">
-                          <div className="absolute inset-0 flex items-end justify-center space-x-2 pb-4">
-                            {[40, 60, 45, 80, 70, 90, 85].map((height, index) => (
-                              <motion.div
-                                key={index}
-                                className="w-6 bg-gradient-to-t from-blue-500 to-purple-500 rounded-t"
-                                style={{ height: `${height}%` }}
-                                initial={{ height: 0 }}
-                                animate={{ height: `${height}%` }}
-                                transition={{ delay: index * 0.1, duration: 0.5 }}
-                              />
-                            ))}
-                          </div>
-                        </div>
-                        
-                        {/* Stats */}
-                        <div className="space-y-3">
-                          {[
-                            { label: "Revenue", value: "+40%", color: "green" },
-                            { label: "Bookings", value: "+25%", color: "blue" },
-                            { label: "Satisfaction", value: "98%", color: "purple" },
-                            { label: "Efficiency", value: "+35%", color: "indigo" }
-                          ].map((stat, index) => (
-                            <motion.div 
-                              key={index}
-                              className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
-                              initial={{ opacity: 0, x: 20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.5 + index * 0.1 }}
-                            >
-                              <span className="text-sm text-gray-600">{stat.label}</span>
-                              <span className={`font-bold text-${stat.color}-600`}>{stat.value}</span>
-                            </motion.div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Floating action button */}
-              <motion.div
-                className="absolute -bottom-4 left-1/2 transform -translate-x-1/2"
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg">
-                  <Sparkles className="w-8 h-8 text-white" />
-                </div>
-              </motion.div>
-            </motion.div>
-          </div>
-        </div>
-      </section>
-
-      {/* Social Proof */}
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center mb-12"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              Trusted by Venues Worldwide
-            </h2>
-            <p className="text-gray-600">
-              Join thousands of successful venues using Boom Booking
-            </p>
-          </motion.div>
-
-          <motion.div 
-            className="grid grid-cols-2 md:grid-cols-4 gap-8 items-center"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            {[
-              { name: "Downtown Karaoke", icon: "🎤", color: "from-pink-500 to-rose-600" },
-              { name: "Premium Lounge", icon: "🍸", color: "from-blue-500 to-indigo-600" },
-              { name: "Night Owl Bar", icon: "🦉", color: "from-purple-500 to-violet-600" },
-              { name: "Golden Voice", icon: "🎵", color: "from-yellow-500 to-orange-600" }
-            ].map((venue, index) => (
-              <motion.div 
-                key={index}
-                className="text-center group cursor-pointer"
-                whileHover={{ scale: 1.05, y: -5 }}
-                transition={{ type: "spring", stiffness: 300 }}
-              >
-                <motion.div 
-                  className={`w-16 h-16 mx-auto mb-3 rounded-xl bg-gradient-to-r ${venue.color} flex items-center justify-center text-2xl group-hover:scale-110 transition-transform duration-300 venue-logo`}
-                  whileHover={{ rotate: 360 }}
-                  transition={{ duration: 0.6 }}
-                >
-                  {venue.icon}
-                </motion.div>
-                <div className="text-lg font-semibold text-gray-700 group-hover:text-gray-900 transition-colors">
-                  {venue.name}
-                </div>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Enhanced Testimonials */}
-      <section id="testimonials" className="py-24 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 relative overflow-hidden">
-        {/* Enhanced Background Effects */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {/* Floating particles */}
-          {[...Array(30)].map((_, i) => (
-            <motion.div
-              key={i}
-              className="particle absolute w-1 h-1 bg-blue-300 rounded-full"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-              }}
-              animate={{
-                y: [0, -150, 0],
-                opacity: [0, 0.8, 0],
-                scale: [0, 1.5, 0],
-              }}
-              transition={{
-                duration: Math.random() * 15 + 15,
-                repeat: Infinity,
-                delay: Math.random() * 15,
-              }}
-            />
-          ))}
-          
-          {/* Gradient orbs */}
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-blue-200/20 to-purple-200/20 rounded-full blur-3xl animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-indigo-200/20 to-pink-200/20 rounded-full blur-3xl animate-pulse" />
+          <motion.div
+            className="absolute bottom-20 left-20 w-6 h-6 bg-purple-400/20 rounded-full"
+            animate={{ y: [0, 20, 0], opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+          />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -1265,298 +731,1147 @@ const LandingPage = () => {
             viewport={{ once: true }}
           >
             <motion.div
-              className="inline-flex items-center px-4 py-2 rounded-full bg-blue-100 text-blue-700 text-sm font-medium mb-6"
+              className="inline-flex items-center px-6 py-3 rounded-full bg-blue-100/80 backdrop-blur-sm border border-blue-200/50 text-blue-800 text-sm font-semibold mb-6"
               initial={{ opacity: 0, scale: 0.8 }}
               whileInView={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.5, delay: 0.2 }}
               viewport={{ once: true }}
             >
-              <Award className="w-4 h-4 mr-2" />
-              Trusted by 500+ Venues
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse" />
+              Powerful Features
             </motion.div>
             
             <motion.h2 
-              className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-gray-900 via-blue-900 to-indigo-900 bg-clip-text text-transparent mb-6"
+              className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               viewport={{ once: true }}
             >
-              What Our Customers Say
+              Everything You Need to Succeed
             </motion.h2>
             
             <motion.p 
-              className="text-xl text-gray-600 max-w-3xl mx-auto"
+              className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.4 }}
               viewport={{ once: true }}
             >
-              Real results from real venues. See how Boom Booking is transforming businesses across industries.
+              Streamline your venue operations with our comprehensive suite of tools designed for modern entertainment businesses
             </motion.p>
           </motion.div>
 
-          {/* Desktop Grid View */}
-          <div className="hidden lg:block">
-            <motion.div 
-              className="grid grid-cols-3 gap-8"
-              variants={staggerContainer}
-              initial="initial"
-              whileInView="animate"
-              viewport={{ once: true }}
-            >
-              {testimonials.slice(0, 3).map((testimonial, index) => (
-                <motion.div
-                  key={index}
-                  variants={fadeInUp}
-                  whileHover={{ 
-                    y: -15, 
-                    scale: 1.03,
-                    transition: { type: "spring", stiffness: 300, damping: 20 }
-                  }}
-                  className="group"
-                >
-                  <Card className="p-8 hover:shadow-2xl transition-all duration-500 border-0 bg-white/90 backdrop-blur-sm group-hover:bg-white relative overflow-hidden h-full">
-                    {/* Enhanced Background Pattern */}
-                    <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-15 transition-opacity duration-500">
-                      <div className="text-8xl">{testimonial.venueImage}</div>
-                    </div>
-                    
-                    {/* Verification Badge */}
-                    {testimonial.verified && (
-                      <motion.div 
-                        className="absolute top-4 right-4 bg-green-100 text-green-700 px-2 py-1 rounded-full text-xs font-medium flex items-center"
-                        initial={{ opacity: 0, scale: 0 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.3, delay: 0.5 }}
-                        viewport={{ once: true }}
-                      >
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Verified
-                      </motion.div>
-                    )}
-
-                    {/* Rating and Quote */}
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center">
-                        {[...Array(testimonial.rating)].map((_, i) => (
-                          <motion.div
-                            key={i}
-                            initial={{ opacity: 0, scale: 0 }}
-                            whileInView={{ opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.3, delay: i * 0.1 }}
-                            viewport={{ once: true }}
-                          >
-                            <Star className="w-5 h-5 text-yellow-400 fill-current" />
-                          </motion.div>
-                        ))}
-                      </div>
-                      <motion.div
-                        className="w-10 h-10 text-blue-600"
-                        animate={{ rotate: [0, 5, -5, 0] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                      >
-                        <Quote />
-                      </motion.div>
-                    </div>
-                    
-                    {/* Testimonial Content */}
-                    <p className="text-gray-700 mb-6 group-hover:text-gray-800 transition-colors relative z-10 text-lg leading-relaxed">
-                      "{testimonial.content}"
-                    </p>
-                    
-                    {/* Metrics Highlight */}
-                    <motion.div 
-                      className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5, delay: 0.3 }}
-                      viewport={{ once: true }}
-                    >
-                      <div className="flex items-center">
-                        <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
-                        <span className="font-semibold text-blue-900">{testimonial.metrics}</span>
-                      </div>
-                    </motion.div>
-                    
-                    {/* Customer Info */}
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center">
-                        <motion.div 
-                          className={`w-14 h-14 bg-gradient-to-r ${testimonial.avatarColor} rounded-full flex items-center justify-center mr-4 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
-                          whileHover={{ rotate: 360 }}
-                          transition={{ duration: 0.6 }}
-                        >
-                          <span className="text-white font-bold text-xl">{testimonial.avatar}</span>
-                        </motion.div>
-                        <div>
-                          <div className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors text-lg">
-                            {testimonial.name}
-                          </div>
-                          <div className="text-gray-600">{testimonial.role}</div>
-                          <div className="text-sm text-gray-500">{testimonial.industry}</div>
-                        </div>
-                      </div>
-                      
-                      {/* Venue Badge */}
-                      <motion.div 
-                        className="bg-gray-100 group-hover:bg-blue-100 px-4 py-2 rounded-full text-sm font-medium text-gray-600 group-hover:text-blue-600 transition-colors"
-                        whileHover={{ scale: 1.05 }}
-                      >
-                        {testimonial.venue}
-                      </motion.div>
-                    </div>
-                  </Card>
-                </motion.div>
-              ))}
-            </motion.div>
-          </div>
-
-          {/* Mobile/Tablet Carousel */}
-          <div className="lg:hidden">
-            <div className="relative">
-              {/* Carousel Container */}
-              <div className="overflow-hidden rounded-2xl">
-                <motion.div 
-                  className="flex"
-                  animate={{ x: `-${currentTestimonial * 100}%` }}
-                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                >
-                  {testimonials.map((testimonial, index) => (
-                    <div key={index} className="w-full flex-shrink-0 px-4">
-                      <Card className="p-6 bg-white/90 backdrop-blur-sm border-0 shadow-xl">
-                        {/* Verification Badge */}
-                        {testimonial.verified && (
-                          <div className="flex justify-end mb-4">
-                            <div className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium flex items-center">
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                              Verified
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Rating */}
-                        <div className="flex items-center mb-4">
-                          {[...Array(testimonial.rating)].map((_, i) => (
-                            <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
-                          ))}
-                        </div>
-                        
-                        {/* Content */}
-                        <p className="text-gray-700 mb-6 text-lg leading-relaxed">
-                          "{testimonial.content}"
-                        </p>
-                        
-                        {/* Metrics */}
-                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg mb-6 border-l-4 border-blue-500">
-                          <div className="flex items-center">
-                            <TrendingUp className="w-5 h-5 text-blue-600 mr-2" />
-                            <span className="font-semibold text-blue-900">{testimonial.metrics}</span>
-                          </div>
-                        </div>
-                        
-                        {/* Customer Info */}
-                        <div className="flex items-center">
-                          <div className={`w-12 h-12 bg-gradient-to-r ${testimonial.avatarColor} rounded-full flex items-center justify-center mr-3 shadow-lg`}>
-                            <span className="text-white font-bold text-lg">{testimonial.avatar}</span>
-                          </div>
-                          <div className="flex-1">
-                            <div className="font-bold text-gray-900">{testimonial.name}</div>
-                            <div className="text-gray-600 text-sm">{testimonial.role}</div>
-                            <div className="text-xs text-gray-500">{testimonial.industry}</div>
-                          </div>
-                          <div className="bg-gray-100 px-3 py-1 rounded-full text-xs font-medium text-gray-600">
-                            {testimonial.venue}
-                          </div>
-                        </div>
-                      </Card>
-                    </div>
-                  ))}
-                </motion.div>
-              </div>
-
-              {/* Navigation Controls */}
-              <div className="flex items-center justify-center mt-8 space-x-4">
-                {/* Previous Button */}
-                <motion.button
-                  onClick={prevTestimonial}
-                  className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label="Previous testimonial"
-                >
-                  <ArrowRight className="w-5 h-5 text-gray-600 rotate-180" />
-                </motion.button>
-
-                {/* Dots Indicator */}
-                <div className="flex space-x-2">
-                  {testimonials.map((_, index) => (
-                    <motion.button
-                      key={index}
-                      onClick={() => goToTestimonial(index)}
-                      className={`w-3 h-3 rounded-full transition-all duration-300 ${
-                        index === currentTestimonial 
-                          ? 'bg-blue-600 scale-125' 
-                          : 'bg-gray-300 hover:bg-gray-400'
-                      }`}
-                      whileHover={{ scale: 1.2 }}
-                      whileTap={{ scale: 0.9 }}
-                      aria-label={`Go to testimonial ${index + 1}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Next Button */}
-                <motion.button
-                  onClick={nextTestimonial}
-                  className="p-3 rounded-full bg-white shadow-lg hover:shadow-xl transition-all duration-300 border border-gray-200"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  aria-label="Next testimonial"
-                >
-                  <ArrowRight className="w-5 h-5 text-gray-600" />
-                </motion.button>
-              </div>
-
-              {/* Auto-play Toggle */}
-              <div className="flex justify-center mt-4">
-                <motion.button
-                  onClick={() => setIsAutoPlaying(!isAutoPlaying)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${
-                    isAutoPlaying 
-                      ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' 
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {isAutoPlaying ? 'Pause' : 'Play'} Auto-rotate
-                </motion.button>
-              </div>
-            </div>
-          </div>
-
-          {/* Trust Indicators */}
+          {/* Features Grid */}
           <motion.div 
-            className="mt-20 text-center"
-            initial={{ opacity: 0, y: 30 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+            initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.5 }}
             viewport={{ once: true }}
           >
-            <div className="flex flex-wrap justify-center items-center gap-8 text-gray-500">
-              <div className="flex items-center">
-                <Shield className="w-5 h-5 mr-2" />
-                <span className="text-sm">SOC 2 Compliant</span>
+            {/* Feature 1: Smart Booking */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Calendar className="w-8 h-8 text-white" />
               </div>
-              <div className="flex items-center">
-                <Globe className="w-5 h-5 mr-2" />
-                <span className="text-sm">99.9% Uptime</span>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Smart Booking System</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Real-time availability tracking with intelligent conflict detection. Reduce double-bookings by 95% and increase revenue with dynamic pricing.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                  Real-time availability updates
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                  Automated conflict detection
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                  Dynamic pricing optimization
+                </div>
               </div>
-              <div className="flex items-center">
-                <Users className="w-5 h-5 mr-2" />
-                <span className="text-sm">500+ Happy Customers</span>
+            </motion.div>
+
+            {/* Feature 2: Analytics Dashboard */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <BarChart3 className="w-8 h-8 text-white" />
               </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Advanced Analytics</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Get deep insights into your business performance. Track revenue trends, customer behavior, and optimize your operations with data-driven decisions.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  Revenue tracking & forecasting
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  Customer behavior insights
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                  Performance optimization
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Feature 3: Team Management */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Users className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Team Collaboration</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Role-based access control with seamless team coordination. Manage staff schedules, permissions, and communication all in one place.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                  Role-based permissions
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                  Staff scheduling tools
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full mr-3"></div>
+                  Real-time communication
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Feature 4: Mobile Access */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Smartphone className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Mobile-First Design</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Access your venue management system from anywhere. Responsive design that works perfectly on all devices with offline capabilities.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                  Responsive design
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                  Offline mode support
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-orange-500 rounded-full mr-3"></div>
+                  Touch-optimized interface
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Feature 5: Security & Compliance */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Shield className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Enterprise Security</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Bank-level security with end-to-end encryption, secure authentication, and compliance with industry standards. Your data is always protected.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                  End-to-end encryption
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                  SOC 2 compliance
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-red-500 rounded-full mr-3"></div>
+                  Secure authentication
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Feature 6: Performance & Reliability */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300 group"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Zap className="w-8 h-8 text-white" />
+              </div>
+              
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">Lightning Fast</h3>
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Optimized for speed with sub-second response times and 99.9% uptime guarantee. Your business never stops, and neither do we.
+              </p>
+              
+              <div className="space-y-3">
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                  Sub-second response times
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                  99.9% uptime guarantee
+                </div>
+                <div className="flex items-center text-sm text-gray-600">
+                  <div className="w-2 h-2 bg-yellow-500 rounded-full mr-3"></div>
+                  Real-time synchronization
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Call to Action */}
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <motion.button
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl text-lg font-semibold"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to="/dashboard" className="flex items-center">
+                Start Your Free Trial
+                <ArrowRight className="w-5 h-5 ml-2" />
+              </Link>
+            </motion.button>
+            
+            <p className="text-gray-600 mt-4 text-sm">
+              No credit card required • 14-day free trial • Cancel anytime
+            </p>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Web App Dashboard Preview Section */}
+      <section className="py-24 relative overflow-hidden">
+        {/* Modern Multi-Layer Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Primary gradient layer */}
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-blue-50/80 to-indigo-100/60" />
+          
+          {/* Secondary gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-purple-50/40 to-transparent" />
+          
+          {/* Animated gradient orbs with enhanced effects */}
+          <motion.div
+            className="absolute top-1/4 left-1/6 w-96 h-96 bg-gradient-to-r from-blue-400/20 via-purple-400/15 to-indigo-400/20 rounded-full blur-3xl"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [0.3, 0.6, 0.3],
+              x: [0, 50, 0],
+              y: [0, -30, 0],
+            }}
+            transition={{
+              duration: 8,
+              repeat: Infinity,
+              ease: "easeInOut",
+            }}
+          />
+          
+          <motion.div
+            className="absolute bottom-1/4 right-1/6 w-80 h-80 bg-gradient-to-r from-indigo-400/20 via-pink-400/15 to-purple-400/20 rounded-full blur-3xl"
+            animate={{
+              scale: [1.2, 1, 1.2],
+              opacity: [0.4, 0.7, 0.4],
+              x: [0, -40, 0],
+              y: [0, 40, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+          />
+          
+          {/* Glassmorphism floating elements */}
+          <motion.div
+            className="absolute top-20 right-20 w-20 h-20 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl shadow-lg"
+            animate={{ 
+              rotate: [0, 360],
+              y: [0, -20, 0],
+            }}
+            transition={{ 
+              rotate: { duration: 20, repeat: Infinity, ease: "linear" },
+              y: { duration: 6, repeat: Infinity, ease: "easeInOut" }
+            }}
+          />
+          
+          <motion.div
+            className="absolute bottom-32 left-16 w-16 h-16 bg-gradient-to-br from-blue-400/20 to-purple-400/20 backdrop-blur-sm rounded-full border border-white/30"
+            animate={{ 
+              scale: [1, 1.3, 1], 
+              opacity: [0.4, 0.8, 0.4],
+              rotate: [0, 180, 360],
+            }}
+            transition={{ 
+              duration: 7, 
+              repeat: Infinity, 
+              ease: "easeInOut" 
+            }}
+          />
+          
+          {/* Enhanced floating particles with glassmorphism */}
+          {[...Array(30)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-2 h-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/30"
+              style={{
+                left: `${Math.random() * 100}%`,
+                top: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                y: [0, -150, 0],
+                opacity: [0, 0.8, 0],
+                scale: [0, 1.5, 0],
+                x: [0, Math.random() * 100 - 50, 0],
+              }}
+              transition={{
+                duration: Math.random() * 15 + 15,
+                repeat: Infinity,
+                delay: Math.random() * 15,
+                ease: "easeInOut",
+              }}
+            />
+          ))}
+          
+          {/* Subtle grid pattern overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:50px_50px] opacity-30" />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Glassmorphism content container */}
+          <div className="relative">
+            {/* Background glass effect */}
+            <div className="absolute inset-0 bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 shadow-2xl" />
+            
+            {/* Content wrapper */}
+            <div className="relative p-8 md:p-12 lg:p-16">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                {/* Left Column - Enhanced Text */}
+                <motion.div
+                  initial={{ opacity: 0, x: -50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6 }}
+                  viewport={{ once: true }}
+                >
+                  {/* Enhanced Badge with glassmorphism */}
+                  <motion.div
+                    className="inline-flex items-center px-6 py-3 rounded-full bg-white/20 backdrop-blur-md border border-white/30 text-blue-800 text-sm font-semibold mb-8 shadow-lg"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5, delay: 0.2 }}
+                    viewport={{ once: true }}
+                    whileHover={{ scale: 1.05, y: -2 }}
+                  >
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse" />
+                    Live Web Dashboard
+                  </motion.div>
+
+                  <motion.h2 
+                    className="text-5xl md:text-6xl lg:text-7xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-8 leading-tight"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.3 }}
+                    viewport={{ once: true }}
+                  >
+                    Powerful Web Dashboard
+                  </motion.h2>
+              
+                  <motion.p 
+                    className="text-xl md:text-2xl text-gray-700 mb-10 leading-relaxed font-medium"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.4 }}
+                    viewport={{ once: true }}
+                  >
+                    Access your complete booking management system from any device. Our responsive web dashboard gives you real-time insights and full control over your venue operations.
+                  </motion.p>
+              
+                  {/* Enhanced Feature List with glassmorphism */}
+                  <motion.div 
+                    className="space-y-6 mb-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.5 }}
+                    viewport={{ once: true }}
+                  >
+                    {[
+                      { icon: CheckCircle, text: "Real-time booking management", color: "green" },
+                      { icon: Shield, text: "Secure multi-tenant architecture", color: "blue" },
+                      { icon: Zap, text: "Instant notifications & updates", color: "purple" },
+                      { icon: BarChart3, text: "Live analytics & reporting", color: "indigo" },
+                      { icon: Users, text: "Team collaboration tools", color: "pink" }
+                    ].map((feature, index) => (
+                      <motion.div 
+                        key={index}
+                        className="flex items-center group p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/20 hover:bg-white/20 transition-all duration-300"
+                        initial={{ opacity: 0, x: -20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+                        viewport={{ once: true }}
+                        whileHover={{ x: 8, scale: 1.02 }}
+                      >
+                        <motion.div 
+                          className={`w-12 h-12 bg-gradient-to-br from-${feature.color}-100 to-${feature.color}-200 rounded-xl flex items-center justify-center mr-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}
+                          whileHover={{ rotate: 360 }}
+                          transition={{ duration: 0.6 }}
+                        >
+                          <feature.icon className={`w-6 h-6 text-${feature.color}-600`} />
+                        </motion.div>
+                        <span className="text-gray-800 text-lg font-semibold group-hover:text-gray-900 transition-colors">
+                          {feature.text}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+
+                  {/* Enhanced Statistics with glassmorphism */}
+                  <motion.div 
+                    className="grid grid-cols-3 gap-6 mb-10"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.7 }}
+                    viewport={{ once: true }}
+                  >
+                    {[
+                      { number: "99.9%", label: "Uptime" },
+                      { number: "<2s", label: "Load Time" },
+                      { number: "24/7", label: "Support" }
+                    ].map((stat, index) => (
+                      <motion.div 
+                        key={index}
+                        className="text-center p-6 bg-white/20 backdrop-blur-md rounded-2xl border border-white/30 shadow-lg"
+                        whileHover={{ scale: 1.05, y: -4 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <div className="text-3xl font-bold text-gray-900 mb-2">{stat.number}</div>
+                        <div className="text-sm font-medium text-gray-700">{stat.label}</div>
+                      </motion.div>
+                    ))}
+                  </motion.div>
+
+                  {/* Call to Action */}
+                  <motion.div 
+                    className="flex flex-col sm:flex-row gap-6"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.8 }}
+                    viewport={{ once: true }}
+                  >
+                    <motion.button
+                      className="flex items-center justify-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl text-lg font-semibold"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Link to="/dashboard" className="flex items-center">
+                        Access Dashboard
+                        <ArrowRight className="w-5 h-5 ml-2" />
+                      </Link>
+                    </motion.button>
+                    
+                    <motion.button
+                      className="flex items-center justify-center px-8 py-4 bg-white/20 backdrop-blur-md border border-white/30 text-gray-800 rounded-2xl hover:bg-white/30 transition-all duration-300 shadow-lg text-lg font-semibold"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      Watch Demo
+                    </motion.button>
+                  </motion.div>
+
+                  {/* Coming Soon Notice */}
+                  <motion.div 
+                    className="mt-8 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-200/50"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.6, delay: 0.9 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className="flex items-center">
+                      <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center mr-3">
+                        <span className="text-white text-sm">📱</span>
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-800">Mobile App Coming Soon</div>
+                        <div className="text-sm text-gray-600">Native iOS & Android apps in development</div>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+
+                {/* Right Column - Dashboard Preview */}
+                <motion.div 
+                  className="relative"
+                  initial={{ opacity: 0, x: 50 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  viewport={{ once: true }}
+                >
+                  {/* Enhanced floating elements around dashboard */}
+                  <motion.div
+                    className="absolute -top-8 -left-8 w-8 h-8 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full shadow-lg border border-white/20"
+                    animate={{ y: [0, -20, 0], opacity: [0.5, 1, 0.5], scale: [1, 1.2, 1] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                  />
+                  <motion.div
+                    className="absolute -bottom-8 -right-8 w-6 h-6 bg-gradient-to-r from-purple-400 to-purple-500 rounded-full shadow-lg border border-white/20"
+                    animate={{ y: [0, 20, 0], opacity: [0.5, 1, 0.5], scale: [1, 1.3, 1] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                  />
+
+                  {/* Dashboard Mockup */}
+                  <motion.div 
+                    className="relative bg-white rounded-2xl shadow-2xl border border-gray-200/50 overflow-hidden"
+                    whileHover={{ scale: 1.02, y: -5 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    {/* Browser Header */}
+                    <div className="bg-gray-100 px-4 py-3 flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-red-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-yellow-400 rounded-full"></div>
+                      <div className="w-3 h-3 bg-green-400 rounded-full"></div>
+                      <div className="flex-1 bg-white rounded px-3 py-1 text-sm text-gray-500 ml-4">
+                        boom-booking.com/dashboard
+                      </div>
+                    </div>
+                    
+                    {/* Dashboard Content */}
+                    <div className="p-6">
+                      {/* Header */}
+                      <div className="flex items-center justify-between mb-6">
+                        <div>
+                          <h3 className="text-2xl font-bold text-gray-900">Dashboard</h3>
+                          <p className="text-gray-600">Welcome back, Sarah!</p>
+                        </div>
+                        <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold">S</span>
+                        </div>
+                      </div>
+                      
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                        {[
+                          { label: "Today's Bookings", value: "12", color: "blue" },
+                          { label: "Revenue", value: "$2,400", color: "green" },
+                          { label: "Occupancy", value: "85%", color: "purple" },
+                          { label: "Satisfaction", value: "4.8★", color: "yellow" }
+                        ].map((stat, index) => (
+                          <motion.div 
+                            key={index}
+                            className={`p-4 bg-${stat.color}-50 rounded-xl border-l-4 border-${stat.color}-400`}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                          >
+                            <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                            <div className="text-sm text-gray-600">{stat.label}</div>
+                          </motion.div>
+                        ))}
+                      </div>
+                      
+                      {/* Recent Bookings */}
+                      <div>
+                        <h4 className="font-semibold text-gray-900 mb-3">Recent Bookings</h4>
+                        <div className="space-y-2">
+                          {[
+                            { room: "Room A", time: "2:00 PM", customer: "John Smith", status: "confirmed" },
+                            { room: "Room B", time: "4:00 PM", customer: "Sarah Chen", status: "pending" },
+                            { room: "Room C", time: "6:30 PM", customer: "Mike Johnson", status: "confirmed" }
+                          ].map((booking, index) => (
+                            <motion.div 
+                              key={index}
+                              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.5 + index * 0.1 }}
+                            >
+                              <div>
+                                <div className="font-medium text-gray-900">{booking.room} - {booking.time}</div>
+                                <div className="text-sm text-gray-600">{booking.customer}</div>
+                              </div>
+                              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                booking.status === 'confirmed' 
+                                  ? 'bg-green-100 text-green-800' 
+                                  : 'bg-yellow-100 text-yellow-800'
+                              }`}>
+                                {booking.status}
+                              </div>
+                            </motion.div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Enhanced floating action button */}
+                  <motion.div
+                    className="absolute -bottom-6 left-1/2 transform -translate-x-1/2"
+                    animate={{ scale: [1, 1.1, 1], y: [0, -5, 0] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <div className="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-2xl border border-white/20 backdrop-blur-sm">
+                      <Sparkles className="w-10 h-10 text-white" />
+                    </div>
+                  </motion.div>
+                </motion.div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Enhanced Social Proof & Success Metrics */}
+      <section className="py-20 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+          
+          {/* Floating elements */}
+          <motion.div
+            className="absolute top-20 right-20 w-4 h-4 bg-blue-400/20 rounded-full"
+            animate={{ y: [0, -20, 0], opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute bottom-20 left-20 w-6 h-6 bg-purple-400/20 rounded-full"
+            animate={{ y: [0, 20, 0], opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Section Header */}
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <motion.div
+              className="inline-flex items-center px-6 py-3 rounded-full bg-blue-100/80 backdrop-blur-sm border border-blue-200/50 text-blue-800 text-sm font-semibold mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse" />
+              Trusted by 10,000+ Venues
+            </motion.div>
+            
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              Join the Success Stories
+            </motion.h2>
+            
+            <motion.p 
+              className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              See how venues worldwide are transforming their business with our platform
+            </motion.p>
+          </motion.div>
+
+          {/* Success Metrics */}
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            viewport={{ once: true }}
+          >
+            {[
+              { 
+                number: "10,000+", 
+                label: "Active Venues", 
+                icon: "🏢",
+                color: "from-blue-500 to-indigo-600",
+                description: "Worldwide"
+              },
+              { 
+                number: "$2.4M", 
+                label: "Revenue Generated", 
+                icon: "💰",
+                color: "from-green-500 to-emerald-600",
+                description: "For our customers"
+              },
+              { 
+                number: "98%", 
+                label: "Customer Satisfaction", 
+                icon: "⭐",
+                color: "from-yellow-500 to-orange-600",
+                description: "Average rating"
+              },
+              { 
+                number: "40%", 
+                label: "Revenue Increase", 
+                icon: "📈",
+                color: "from-purple-500 to-pink-600",
+                description: "Average boost"
+              }
+            ].map((metric, index) => (
+              <motion.div 
+                key={index}
+                className="text-center p-6 bg-white/60 backdrop-blur-sm rounded-2xl border border-white/50 shadow-lg hover:shadow-xl transition-all duration-300"
+                whileHover={{ scale: 1.05, y: -5 }}
+                transition={{ type: "spring", stiffness: 300 }}
+              >
+                <motion.div 
+                  className={`w-16 h-16 mx-auto mb-4 rounded-xl bg-gradient-to-r ${metric.color} flex items-center justify-center text-2xl shadow-lg`}
+                  whileHover={{ rotate: 360, scale: 1.1 }}
+                  transition={{ duration: 0.6 }}
+                >
+                  {metric.icon}
+                </motion.div>
+                <div className="text-3xl font-bold text-gray-900 mb-2">{metric.number}</div>
+                <div className="text-lg font-semibold text-gray-700 mb-1">{metric.label}</div>
+                <div className="text-sm text-gray-500">{metric.description}</div>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Customer Logos & Testimonials */}
+          <motion.div 
+            className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            viewport={{ once: true }}
+          >
+            {/* Left: Customer Logos */}
+            <div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center lg:text-left">
+                Trusted by Industry Leaders
+              </h3>
+              <div className="grid grid-cols-2 gap-8">
+                {[
+                  { name: "Karaoke Central", location: "Tokyo, Japan", logo: "🎤", revenue: "+45%" },
+                  { name: "Voice Box Lounge", location: "Seoul, Korea", logo: "🎵", revenue: "+38%" },
+                  { name: "Melody Bar", location: "Bangkok, Thailand", logo: "🎶", revenue: "+52%" },
+                  { name: "Harmony Club", location: "Singapore", logo: "🎼", revenue: "+41%" }
+                ].map((customer, index) => (
+                  <motion.div 
+                    key={index}
+                    className="p-6 bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-md hover:shadow-lg transition-all duration-300"
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    initial={{ opacity: 0, x: -20 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, delay: 0.7 + index * 0.1 }}
+                    viewport={{ once: true }}
+                  >
+                    <div className="flex items-center mb-3">
+                      <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center text-xl mr-4">
+                        {customer.logo}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-gray-900">{customer.name}</div>
+                        <div className="text-sm text-gray-500">{customer.location}</div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-green-600">{customer.revenue}</div>
+                      <div className="text-xs text-gray-500">Revenue Increase</div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
+
+            {/* Right: Featured Testimonial */}
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-3xl blur-xl" />
+              <div className="relative p-8 bg-white/90 backdrop-blur-sm rounded-2xl border border-white/50 shadow-xl">
+                <div className="flex items-center mb-6">
+                  <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-2xl mr-4">
+                    🎤
+                  </div>
+                  <div>
+                    <div className="font-bold text-gray-900">Sarah Chen</div>
+                    <div className="text-sm text-gray-600">Owner, Karaoke Central Tokyo</div>
+                    <div className="flex text-yellow-400 mt-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i}>⭐</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <blockquote className="text-lg text-gray-700 italic mb-6 leading-relaxed">
+                  "Boom Booking transformed our venue completely. We've seen a 45% increase in revenue and our customers love the seamless booking experience. The real-time analytics help us make data-driven decisions every day."
+                </blockquote>
+                
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-500">
+                    Verified customer since 2023
+                  </div>
+                  <motion.button
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-300 text-sm font-semibold"
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    Read More Stories
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Call to Action */}
+          <motion.div 
+            className="text-center mt-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <motion.button
+              className="px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-2xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 shadow-xl hover:shadow-2xl text-lg font-semibold"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Start Your Success Story Today
+              <ArrowRight className="w-5 h-5 ml-2 inline" />
+            </motion.button>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Modern Testimonials & Reviews Section */}
+      <section id="testimonials" className="py-24 bg-gradient-to-br from-gray-50 via-white to-blue-50/30 relative overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Subtle grid pattern */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(59,130,246,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(59,130,246,0.03)_1px,transparent_1px)] bg-[size:40px_40px]" />
+          
+          {/* Floating elements */}
+          <motion.div
+            className="absolute top-20 right-20 w-4 h-4 bg-blue-400/20 rounded-full"
+            animate={{ y: [0, -20, 0], opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute bottom-20 left-20 w-6 h-6 bg-purple-400/20 rounded-full"
+            animate={{ y: [0, 20, 0], opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
+          />
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          {/* Section Header */}
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+          >
+            <motion.div
+              className="inline-flex items-center px-6 py-3 rounded-full bg-blue-100/80 backdrop-blur-sm border border-blue-200/50 text-blue-800 text-sm font-semibold mb-6"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-3 animate-pulse" />
+              Trusted by 10,000+ Venues
+            </motion.div>
+            
+            <motion.h2 
+              className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-gray-900 via-blue-800 to-indigo-800 bg-clip-text text-transparent mb-6"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              Loved by Venue Owners Worldwide
+            </motion.h2>
+            
+            <motion.p 
+              className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              See how Boom Booking is transforming venue management with real results from real customers
+            </motion.p>
+          </motion.div>
+
+          {/* Overall Rating */}
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+            viewport={{ once: true }}
+          >
+            <div className="inline-flex items-center bg-white/80 backdrop-blur-sm rounded-2xl px-8 py-6 shadow-lg border border-white/50">
+              <div className="text-6xl font-bold text-gray-900 mr-4">4.9</div>
+              <div className="text-left">
+                <div className="flex items-center mb-2">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className="w-6 h-6 text-yellow-400 fill-current" />
+                  ))}
+                </div>
+                <div className="text-gray-600 text-sm">Based on 2,847 reviews</div>
+                <div className="text-gray-500 text-xs">Trustpilot, Google Reviews, Capterra</div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Featured Testimonials Grid */}
+          <motion.div 
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            viewport={{ once: true }}
+          >
+            {/* Testimonial 1 */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+                <span className="ml-2 text-sm text-gray-500">2 days ago</span>
+              </div>
+              
+              <blockquote className="text-gray-700 mb-6 leading-relaxed">
+                "Boom Booking completely transformed our karaoke venue. We've seen a 45% increase in bookings and our staff efficiency has improved dramatically. The automated reminders alone saved us 15 hours per week."
+              </blockquote>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-pink-400 to-rose-500 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-white font-bold">SC</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Sarah Chen</div>
+                    <div className="text-sm text-gray-600">Owner, Karaoke Central Tokyo</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-green-600">+45%</div>
+                  <div className="text-xs text-gray-500">Bookings</div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 2 */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+                <span className="ml-2 text-sm text-gray-500">1 week ago</span>
+              </div>
+              
+              <blockquote className="text-gray-700 mb-6 leading-relaxed">
+                "The analytics dashboard gives us insights we never had before. We can now predict peak times and optimize our pricing. Customer satisfaction is at 98% and revenue increased by 35%."
+              </blockquote>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-blue-400 to-indigo-500 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-white font-bold">MR</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Mike Rodriguez</div>
+                    <div className="text-sm text-gray-600">Manager, Premium Lounge</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-green-600">+35%</div>
+                  <div className="text-xs text-gray-500">Revenue</div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Testimonial 3 */}
+            <motion.div
+              className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 hover:shadow-xl transition-all duration-300"
+              whileHover={{ y: -5, scale: 1.02 }}
+            >
+              <div className="flex items-center mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 text-yellow-400 fill-current" />
+                ))}
+                <span className="ml-2 text-sm text-gray-500">3 days ago</span>
+              </div>
+              
+              <blockquote className="text-gray-700 mb-6 leading-relaxed">
+                "Finally, a booking system that scales with our business. The multi-location features are exactly what we needed. We've reduced no-shows by 60% and our team loves the interface."
+              </blockquote>
+              
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-gradient-to-r from-purple-400 to-violet-500 rounded-full flex items-center justify-center mr-4">
+                    <span className="text-white font-bold">ET</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-gray-900">Emma Thompson</div>
+                    <div className="text-sm text-gray-600">Director, Chain Operations</div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-green-600">-60%</div>
+                  <div className="text-xs text-gray-500">No-shows</div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+
+          {/* Video Testimonial Section */}
+          <motion.div 
+            className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            viewport={{ once: true }}
+          >
+            {/* Background Pattern */}
+            <div className="absolute inset-0 opacity-10">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-white rounded-full -translate-y-32 translate-x-32"></div>
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white rounded-full translate-y-24 -translate-x-24"></div>
+            </div>
+            
+            <div className="relative z-10">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                  <h3 className="text-3xl md:text-4xl font-bold mb-6">
+                    Watch How We Transformed This Venue
+                  </h3>
+                  <p className="text-xl text-blue-100 mb-8 leading-relaxed">
+                    See how Karaoke Central Tokyo increased their bookings by 45% and improved customer satisfaction to 98% using Boom Booking.
+                  </p>
+                  
+                  <div className="flex items-center space-x-6">
+                    <motion.button
+                      className="flex items-center px-8 py-4 bg-white text-blue-600 rounded-2xl hover:bg-blue-50 transition-all duration-300 shadow-lg font-semibold"
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <Play className="w-5 h-5 mr-2" />
+                      Watch Video
+                    </motion.button>
+                    
+                    <div className="text-sm text-blue-100">
+                      <div className="font-semibold">2:34 min</div>
+                      <div>Customer Success Story</div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="relative">
+                  <div className="aspect-video bg-gray-900 rounded-2xl overflow-hidden shadow-2xl">
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                      <motion.div
+                        className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center cursor-pointer"
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <Play className="w-8 h-8 text-white ml-1" />
+                      </motion.div>
+                    </div>
+                  </div>
+                  
+                  {/* Video Stats Overlay */}
+                  <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl p-6 shadow-xl">
+                    <div className="text-center">
+                      <div className="text-3xl font-bold text-gray-900">45%</div>
+                      <div className="text-sm text-gray-600">Increase in Bookings</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Review Platforms */}
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            viewport={{ once: true }}
+          >
+            <h3 className="text-2xl font-bold text-gray-900 mb-8">Rated Excellent on All Platforms</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                { platform: "Trustpilot", rating: "4.9", reviews: "1,247 reviews", color: "from-green-400 to-emerald-500" },
+                { platform: "Google Reviews", rating: "4.8", reviews: "892 reviews", color: "from-blue-400 to-indigo-500" },
+                { platform: "Capterra", rating: "4.9", reviews: "708 reviews", color: "from-purple-400 to-violet-500" }
+              ].map((platform, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50"
+                  whileHover={{ y: -2, scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
+                  <div className={`w-16 h-16 bg-gradient-to-r ${platform.color} rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                    <span className="text-white font-bold text-xl">{platform.platform[0]}</span>
+                  </div>
+                  <div className="text-3xl font-bold text-gray-900 mb-2">{platform.rating}</div>
+                  <div className="flex items-center justify-center mb-2">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
+                    ))}
+                  </div>
+                  <div className="text-sm text-gray-600">{platform.reviews}</div>
+                </motion.div>
+              ))}
             </div>
           </motion.div>
         </div>
@@ -1684,99 +1999,187 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 cta-glow relative overflow-hidden">
-        {/* Animated Background Elements */}
+      {/* Modern CTA Section */}
+      <section className="py-24 bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700 relative overflow-hidden">
+        {/* Background Effects */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {/* Gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent" />
+          
+          {/* Animated gradient orbs */}
           <motion.div
-            className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full"
+            className="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-white/10 to-transparent rounded-full blur-3xl"
             animate={{
-              scale: [1, 1.5, 1],
+              scale: [1, 1.2, 1],
               opacity: [0.3, 0.6, 0.3],
-            }}
-            transition={{
-              duration: 4,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div
-            className="absolute bottom-10 right-10 w-24 h-24 bg-white/10 rounded-full"
-            animate={{
-              scale: [1.5, 1, 1.5],
-              opacity: [0.6, 0.3, 0.6],
-            }}
-            transition={{
-              duration: 3,
-              repeat: Infinity,
-              ease: "easeInOut"
-            }}
-          />
-          <motion.div
-            className="absolute top-1/2 left-1/2 w-16 h-16 bg-white/5 rounded-full"
-            animate={{
-              x: [0, 100, -100, 0],
-              y: [0, -50, 50, 0],
+              x: [0, 50, 0],
+              y: [0, -30, 0],
             }}
             transition={{
               duration: 8,
               repeat: Infinity,
-              ease: "easeInOut"
+              ease: "easeInOut",
             }}
+          />
+          
+          <motion.div
+            className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-transparent to-white/10 rounded-full blur-3xl"
+            animate={{
+              scale: [1.2, 1, 1.2],
+              opacity: [0.4, 0.7, 0.4],
+              x: [0, -40, 0],
+              y: [0, 40, 0],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "easeInOut",
+              delay: 2,
+            }}
+          />
+          
+          {/* Floating elements */}
+          <motion.div
+            className="absolute top-20 right-20 w-4 h-4 bg-white/30 rounded-full"
+            animate={{ y: [0, -20, 0], opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity }}
+          />
+          <motion.div
+            className="absolute bottom-20 left-20 w-6 h-6 bg-white/20 rounded-full"
+            animate={{ y: [0, 20, 0], opacity: [0.4, 0.8, 0.4] }}
+            transition={{ duration: 5, repeat: Infinity, delay: 1 }}
           />
         </div>
 
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
-          <motion.h2 
-            className="text-4xl md:text-5xl font-bold text-white mb-4"
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            Ready to Transform Your Venue?
-          </motion.h2>
-          <motion.p 
-            className="text-xl text-blue-100 mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            viewport={{ once: true }}
-          >
-            Join thousands of venues already using Boom Booking to increase revenue and streamline operations.
-          </motion.p>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            {/* Urgency Badge */}
+            <motion.div
+              className="inline-flex items-center px-6 py-3 rounded-full bg-white/20 backdrop-blur-sm border border-white/30 text-white text-sm font-semibold mb-8"
+              initial={{ opacity: 0, scale: 0.8 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-2 h-2 bg-green-400 rounded-full mr-3 animate-pulse" />
+              Limited Time: 50% Off First 3 Months
+            </motion.div>
+            
+            {/* Main Headline */}
+            <motion.h2 
+              className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight"
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              viewport={{ once: true }}
+            >
+              Start Your Success Story Today
+            </motion.h2>
+            
+            {/* Subheadline */}
+            <motion.p 
+              className="text-xl md:text-2xl text-blue-100 mb-8 max-w-4xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+              viewport={{ once: true }}
+            >
+              Join 10,000+ venues already using Boom Booking to increase revenue by 40% and reduce no-shows by 60%
+            </motion.p>
+          </div>
+
+          {/* Value Proposition Cards */}
           <motion.div 
-            className="flex flex-col sm:flex-row gap-4 justify-center"
+            className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
             viewport={{ once: true }}
           >
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button size="lg" className="bg-white text-blue-600 hover:bg-gray-100 px-8 py-3 shadow-lg btn-animated">
-                <Link to="/register" className="flex items-center">
-                  Start Free Trial
-                  <motion.div
-                    animate={{ x: [0, 5, 0] }}
-                    transition={{ duration: 1.5, repeat: Infinity }}
-                  >
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </motion.div>
-                </Link>
-              </Button>
-            </motion.div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 px-8 py-3 btn-animated"
-              >
-                <Link to="/pricing" className="flex items-center">
-                  View Pricing
-                  <TrendingUp className="w-5 h-5 ml-2" />
-                </Link>
-              </Button>
-            </motion.div>
+            {/* Value 1 */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-white mb-2">40%</div>
+              <div className="text-blue-100 text-sm">Average Revenue Increase</div>
+            </div>
+            
+            {/* Value 2 */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-white mb-2">60%</div>
+              <div className="text-blue-100 text-sm">Reduction in No-shows</div>
+            </div>
+            
+            {/* Value 3 */}
+            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 text-center">
+              <div className="text-3xl font-bold text-white mb-2">15hrs</div>
+              <div className="text-blue-100 text-sm">Saved Per Week</div>
+            </div>
+          </motion.div>
+
+          {/* CTA Buttons */}
+          <motion.div 
+            className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-12"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6 }}
+            viewport={{ once: true }}
+          >
+            {/* Primary CTA */}
+            <motion.button
+              className="px-12 py-6 bg-white text-blue-600 rounded-2xl hover:bg-blue-50 transition-all duration-300 shadow-2xl hover:shadow-3xl text-xl font-bold flex items-center group"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to="/register" className="flex items-center">
+                Start Your Free Trial
+                <motion.div
+                  className="ml-3"
+                  animate={{ x: [0, 5, 0] }}
+                  transition={{ duration: 1.5, repeat: Infinity }}
+                >
+                  <ArrowRight className="w-6 h-6" />
+                </motion.div>
+              </Link>
+            </motion.button>
+            
+            {/* Secondary CTA */}
+            <motion.button
+              className="px-12 py-6 bg-transparent border-2 border-white text-white rounded-2xl hover:bg-white hover:text-blue-600 transition-all duration-300 shadow-xl text-xl font-semibold flex items-center"
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <Link to="/pricing" className="flex items-center">
+                View Pricing Plans
+                <TrendingUp className="w-6 h-6 ml-3" />
+              </Link>
+            </motion.button>
+          </motion.div>
+
+          {/* Trust Indicators */}
+          <motion.div 
+            className="text-center"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.7 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex flex-wrap justify-center items-center gap-8 text-blue-100 text-sm">
+              <div className="flex items-center">
+                <Shield className="w-5 h-5 mr-2" />
+                <span>14-day free trial</span>
+              </div>
+              <div className="flex items-center">
+                <CheckCircle className="w-5 h-5 mr-2" />
+                <span>No credit card required</span>
+              </div>
+              <div className="flex items-center">
+                <Users className="w-5 h-5 mr-2" />
+                <span>10,000+ happy customers</span>
+              </div>
+              <div className="flex items-center">
+                <Globe className="w-5 h-5 mr-2" />
+                <span>Cancel anytime</span>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>

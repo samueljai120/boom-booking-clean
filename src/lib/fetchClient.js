@@ -39,7 +39,11 @@ class FetchClient {
       }
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        const error = new Error(`HTTP ${response.status}: ${response.statusText}`);
+        error.status = response.status;
+        error.statusText = response.statusText;
+        error.data = data;
+        throw error;
       }
 
       return {

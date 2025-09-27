@@ -79,6 +79,17 @@ export const BusinessHoursProvider = ({ children }) => {
   const updateBusinessHours = async (newBusinessHours) => {
     try {
       setError(null);
+      
+      // Ensure we have valid business hours data
+      if (!newBusinessHours || !Array.isArray(newBusinessHours)) {
+        throw new Error('Business hours data is required and must be an array');
+      }
+      
+      console.log('Updating business hours:', {
+        tenantId: currentTenant?.id,
+        businessHours: newBusinessHours
+      });
+      
       const response = await businessHoursAPI.update({ businessHours: newBusinessHours }, currentTenant?.id);
       if (response.data.success) {
         const updatedHours = response.data.data?.businessHours || response.data.businessHours || [];
@@ -97,7 +108,7 @@ export const BusinessHoursProvider = ({ children }) => {
         throw new Error('Failed to update business hours');
       }
     } catch (err) {
-      // Error updating business hours - error handling removed for clean version
+      console.error('Error updating business hours:', err);
       setError(err.message);
       toast.error(`Failed to update business hours: ${err.response?.data?.error || err.message}`);
       return false;

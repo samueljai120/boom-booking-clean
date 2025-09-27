@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import moment from 'moment';
+import { format, parseISO, isAfter, isBefore, addHours, subHours, isValid } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
@@ -43,6 +43,36 @@ const BookingModal = ({ isOpen, onClose, booking, rooms, onSuccess }) => {
     }
   });
 
+  // Helper function to safely format dates
+  const safeFormatDate = (dateValue, fallback = null) => {
+    if (!dateValue) return fallback;
+    
+    try {
+      // Convert to string first
+      const dateString = String(dateValue);
+      
+      // Try to parse the date
+      const parsedDate = parseISO(dateString);
+      
+      // Check if the parsed date is valid
+      if (isValid(parsedDate)) {
+        return format(parsedDate, "yyyy-MM-dd'T'HH:mm");
+      }
+      
+      // If parseISO fails, try creating a new Date object
+      const dateObj = new Date(dateString);
+      if (isValid(dateObj)) {
+        return format(dateObj, "yyyy-MM-dd'T'HH:mm");
+      }
+      
+      // If all else fails, return fallback
+      return fallback;
+    } catch (error) {
+      console.warn('Error formatting date:', dateValue, error);
+      return fallback;
+    }
+  };
+
   // Reset form when booking changes
   useEffect(() => {
     if (booking) {
@@ -59,8 +89,8 @@ const BookingModal = ({ isOpen, onClose, booking, rooms, onSuccess }) => {
           email: booking.resource?.email || booking.email || '',
           partySize: booking.resource?.partySize || booking.partySize || '',
           source: booking.resource?.source || booking.source || 'walk_in',
-          startTime: moment(booking.startTime || booking.start).format('YYYY-MM-DDTHH:mm'),
-          endTime: moment(booking.endTime || booking.end).format('YYYY-MM-DDTHH:mm'),
+          startTime: safeFormatDate(booking.startTime || booking.start, format(new Date(), "yyyy-MM-dd'T'HH:mm")),
+          endTime: safeFormatDate(booking.endTime || booking.end, format(addHours(new Date(), 1), "yyyy-MM-dd'T'HH:mm")),
           status: booking.resource?.status || booking.status || 'confirmed',
           priority: booking.resource?.priority || booking.priority || 'normal',
           basePrice: booking.resource?.basePrice || booking.basePrice || '',
@@ -77,20 +107,26 @@ const BookingModal = ({ isOpen, onClose, booking, rooms, onSuccess }) => {
         //   phone: booking.resource?.phone || booking.phone || '',
         //   email: booking.resource?.email || booking.email || '',
         //   source: booking.resource?.source || booking.source || 'walk_in',
-        //   startTime: moment(booking.startTime || booking.start).format('YYYY-MM-DDTHH:mm'),
-        //   endTime: moment(booking.endTime || booking.end).format('YYYY-MM-DDTHH:mm'),
+        //   startTime: format(parseISO(booking.startTime || booking.start), "yyyy-MM-dd'T'HH:mm"),
+        //   endTime: format(parseISO(booking.endTime || booking.end), "yyyy-MM-dd'T'HH:mm"),
         // });
       } else {
         // Creating new booking
         setIsEditing(false);
+        
+        // Get current date and time for new booking
+        const now = new Date();
+        const defaultStartTime = format(now, "yyyy-MM-dd'T'HH:mm");
+        const defaultEndTime = format(addHours(now, 1), "yyyy-MM-dd'T'HH:mm");
+        
         reset({
           customerName: '',
           phone: '',
           email: '',
           partySize: '',
           source: 'walk_in',
-          startTime: moment(booking.start).format('YYYY-MM-DDTHH:mm'),
-          endTime: moment(booking.end).format('YYYY-MM-DDTHH:mm'),
+          startTime: safeFormatDate(booking?.start, defaultStartTime),
+          endTime: safeFormatDate(booking?.end, defaultEndTime),
           status: 'confirmed',
           priority: 'normal',
           basePrice: '',

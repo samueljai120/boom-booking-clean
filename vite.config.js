@@ -7,13 +7,16 @@ const buildId = Date.now()
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react({
-    jsxRuntime: 'classic',
+    jsxRuntime: 'automatic',
     jsxImportSource: 'react'
   })],
   server: {
-    port: 3000,
+    port: 3001,
     host: true,
     // No proxy configuration for standalone frontend
+    headers: {
+      'Content-Type': 'application/javascript; charset=utf-8'
+    }
   },
   preview: {
     port: process.env.PORT || 3001,
@@ -23,8 +26,14 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: false,
-    minify: false,
+    minify: 'terser',
     target: 'es2020',
+    terserOptions: {
+      compress: {
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
     commonjsOptions: {
       include: [/node_modules/]
     },

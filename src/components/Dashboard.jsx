@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import moment from 'moment';
+import { format } from 'date-fns';
+import moment from 'moment-timezone';
 import Header from './Header';
 import DatePicker from './DatePicker';
 import Scheduler from './Scheduler';

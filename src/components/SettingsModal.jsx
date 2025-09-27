@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import moment from 'moment';
+import { format } from 'date-fns';
 import { useSettings } from '../contexts/SettingsContext';
 import { useBusinessHours } from '../contexts/BusinessHoursContext';
 import { roomsAPI, bookingsAPI } from '../lib/api';
